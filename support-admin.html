@@ -210,16 +210,18 @@
   <div id="ticket-container"></div>
 </div>
 
-<script src="supabase.min.js"></script>
+<!-- Local ticket API (no Supabase) -->
 <script>
-  if(!window.supabase){ document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>'); }
-</script>
-<script>
-  var SUPABASE_URL = "https://noafkwgspyenzxjwyhzz.supabase.co";
-  var adminClient = null;
-  var adminChannel = null;
+  var TICKET_API = (function(){
+    var host = window.location.hostname;
+    if(host === 'localhost' || host === '127.0.0.1'){
+      return 'http://localhost:8001/api/tickets';
+    }
+    return 'https://explaining-jay-fleet-tax.trycloudflare.com/api/tickets';
+  })();
   var allTickets = [];
   var currentFilter = 'all';
+  var pollInterval = null;
 
   function escapeHTML(str){
     var div = document.createElement('div');
@@ -246,63 +248,21 @@
       '</div>';
   }
 
-  async function connectAdmin(){
-    var key = document.getElementById('service-key-input').value.trim();
-    var errEl = document.getElementById('gate-error');
-    errEl.style.display = 'none';
+  // Auto-connect (no auth gate — local API is trusted)
+  document.addEventListener('DOMContentLoaded', function(){
+    document.getElementById('gate-wrap').style.display = 'none';
+    document.getElementById('dash-wrap').style.display = 'block';
+    loadTickets();
+    startPoll();
+  });
 
-    if(!key){
-      errEl.textContent = 'Enter your Supabase service role key.';
-      errEl.style.display = 'block';
-      return;
-    }
-
-    if(!key.startsWith('eyJ')){
-      errEl.textContent = 'The key must be a JWT (starts with eyJ...). Find it in Supabase Dashboard → Settings → API → service_role (secret).';
-      errEl.style.display = 'block';
-      return;
-    }
-
-    try {
-      adminClient = window.supabase.createClient(SUPABASE_URL, key);
-      var r = await adminClient.from('support_tickets').select('id').limit(1);
-      if(r.error) throw r.error;
-      document.getElementById('gate-wrap').style.display = 'none';
-      document.getElementById('dash-wrap').style.display = 'block';
-      loadTickets();
-      subscribeRealtime();
-    } catch(err){
-      adminClient = null;
-      errEl.textContent = err.message || 'Could not connect.';
-      errEl.style.display = 'block';
-    }
+  function startPoll(){
+    stopPoll();
+    pollInterval = setInterval(function(){ loadTickets(true); }, 4000);
   }
 
-  function disconnectAdmin(){
-    if(adminChannel){ adminClient.removeChannel(adminChannel); adminChannel = null; }
-    adminClient = null;
-    allTickets = [];
-    document.getElementById('service-key-input').value = '';
-    document.getElementById('dash-wrap').style.display = 'none';
-    document.getElementById('gate-wrap').style.display = 'flex';
-  }
-
-  function subscribeRealtime(){
-    if(adminChannel || !adminClient) return;
-    adminChannel = adminClient
-      .channel('admin-support-tickets')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'support_tickets'
-      }, function(payload){
-        if(payload.eventType === 'INSERT'){
-          showToast('New ticket: ' + (payload.new.subject || ''));
-          flashTabTitle();
-        }
-        loadTickets();
-      })
-      .subscribe();
+  function stopPoll(){
+    if(pollInterval){ clearInterval(pollInterval); pollInterval = null; }
   }
 
   function showToast(msg){
@@ -313,12 +273,6 @@
     setTimeout(function(){ toast.remove(); }, 4000);
   }
 
-  function flashTabTitle(){
-    var original = document.title;
-    document.title = '🔔 New Ticket!';
-    setTimeout(function(){ document.title = original; }, 5000);
-  }
-
   function setFilter(f){
     currentFilter = f;
     ['all','open','resolved'].forEach(function(k){
@@ -327,18 +281,15 @@
     renderTickets();
   }
 
-  async function loadTickets(){
+  async function loadTickets(silent){
     var container = document.getElementById('ticket-container');
-    container.innerHTML = '<div class="empty-state">Loading tickets…</div>';
+    if(!silent) container.innerHTML = '<div class="empty-state">Loading tickets…</div>';
     try {
-      var r = await adminClient
-        .from('support_tickets')
-        .select('*')
-        .order('created_at', { ascending: false });
-      if(r.error) throw r.error;
-      allTickets = r.data || [];
+      var res = await fetch(TICKET_API);
+      if(!res.ok) throw new Error('API error: ' + res.status);
+      allTickets = await res.json();
     } catch(err){
-      container.innerHTML = '<div class="empty-state">Failed to load tickets: ' + escapeHTML(err.message) + '</div>';
+      if(!silent) container.innerHTML = '<div class="empty-state">Failed to load: ' + escapeHTML(err.message) + '</div>';
       return;
     }
     updateStats();
@@ -353,8 +304,24 @@
     document.getElementById('stat-resolved').textContent = resolved;
   }
 
+  function saveTextareaValues(){
+    var vals = {};
+    document.querySelectorAll('textarea[id^="reply-"]').forEach(function(ta){
+      vals[ta.id] = ta.value;
+    });
+    return vals;
+  }
+
+  function restoreTextareaValues(vals){
+    Object.keys(vals).forEach(function(id){
+      var ta = document.getElementById(id);
+      if(ta) ta.value = vals[id];
+    });
+  }
+
   function renderTickets(){
     var container = document.getElementById('ticket-container');
+    var savedVals = saveTextareaValues();
     var list = allTickets.filter(function(t){
       if(currentFilter === 'open') return t.status !== 'resolved';
       if(currentFilter === 'resolved') return t.status === 'resolved';
@@ -392,49 +359,51 @@
         '</div>' +
       '</div>';
     }).join('');
+    restoreTextareaValues(savedVals);
   }
 
   async function sendReply(id){
     var textarea = document.getElementById('reply-' + id);
     var reply = textarea.value.trim();
-    if(!reply){
-      alert('Write a reply before sending.');
-      return;
-    }
+    if(!reply){ alert('Write a reply before sending.'); return; }
     textarea.value = '';
     var ticket = allTickets.find(function(t){ return t.id === id; });
     var thread = ticket ? getThread(ticket) : [];
     thread.push({sender:'admin', text:reply, time:new Date().toISOString()});
-    var threadStr = JSON.stringify(thread);
     try {
-      var r = await adminClient.from('support_tickets').update({ response: threadStr }).eq('id', id);
-      if(r.error) throw r.error;
-    } catch(err){
-      alert('Failed to send reply: ' + err.message);
-    }
-    await loadTickets();
+      var res = await fetch(TICKET_API + '/' + id, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ response: JSON.stringify(thread) })
+      });
+      if(!res.ok) throw new Error('API error: ' + res.status);
+    } catch(err){ alert('Failed to send: ' + err.message); }
+    await loadTickets(true);
   }
 
   async function resolveTicket(id){
     try {
-      var r = await adminClient.from('support_tickets').update({ status: 'resolved' }).eq('id', id);
-      if(r.error) throw r.error;
-    } catch(err){
-      alert('Failed to resolve: ' + err.message);
-    }
-    await loadTickets();
+      var res = await fetch(TICKET_API + '/' + id, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ status: 'resolved' })
+      });
+      if(!res.ok) throw new Error('API error: ' + res.status);
+    } catch(err){ alert('Failed: ' + err.message); }
+    await loadTickets(true);
   }
 
   async function reopenTicket(id){
     try {
-      var r = await adminClient.from('support_tickets').update({ status: 'open' }).eq('id', id);
-      if(r.error) throw r.error;
-    } catch(err){
-      alert('Failed to reopen: ' + err.message);
-    }
-    await loadTickets();
+      var res = await fetch(TICKET_API + '/' + id, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ status: 'open' })
+      });
+      if(!res.ok) throw new Error('API error: ' + res.status);
+    } catch(err){ alert('Failed: ' + err.message); }
+    await loadTickets(true);
   }
 </script>
-
 </body>
 </html>

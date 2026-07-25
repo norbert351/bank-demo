@@ -60,9 +60,32 @@
     transform:translateX(0);
   }
   .screen::-webkit-scrollbar{display:none;}
-  /* ---------- Desktop sidebar (hidden on mobile) ---------- */
+  /* ---------- Desktop sidebar / Mobile overlay ---------- */
   .desktop-sidebar{
+    display:flex;
+    flex-direction:column;
+    position:fixed;
+    top:0;left:0;bottom:0;
+    width:280px;
+    background:var(--ink);
+    color:var(--paper);
+    z-index:150;
+    transform:translateX(-100%);
+    transition:transform 0.3s ease;
+    box-shadow:4px 0 24px rgba(0,0,0,0.3);
+  }
+  .desktop-sidebar.open{
+    transform:translateX(0);
+  }
+  .sidebar-overlay{
     display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.5);
+    z-index:140;
+  }
+  .sidebar-overlay.show{
+    display:block;
   }
 
   .ledger-rule{
@@ -215,7 +238,31 @@
     padding:22px 24px 26px 24px;
     border-radius:0 0 22px 22px;
   }
-  .dash-top-row{display:flex;justify-content:space-between;align-items:center;}
+  .dash-top-row{display:flex;justify-content:flex-start;align-items:center;gap:12px;}
+
+  /* Hamburger menu button */
+  .menu-toggle{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    background:none;
+    border:none;
+    padding:6px;
+    cursor:pointer;
+    flex-shrink:0;
+    z-index:200;
+  }
+  .menu-toggle span{
+    display:block;
+    width:20px;
+    height:2px;
+    background:var(--paper);
+    border-radius:2px;
+    transition:all 0.25s ease;
+  }
+  .menu-toggle.open span:nth-child(1){ transform:translateY(6px) rotate(45deg); }
+  .menu-toggle.open span:nth-child(2){ opacity:0; }
+  .menu-toggle.open span:nth-child(3){ transform:translateY(-6px) rotate(-45deg); }
   .header-actions{display:flex;align-items:center;gap:10px;}
   .support-fab{
     width:38px;height:38px;border-radius:50%;
@@ -570,6 +617,84 @@
   }
 
   /* ============================================================
+     SIDEBAR NAV STYLES (shared mobile + desktop)
+     ============================================================ */
+  .dsb-brand{
+    font-family:"Fraunces",serif;
+    font-weight:600;
+    font-size:18px;
+    padding:24px 24px 20px 24px;
+    border-bottom:1px solid rgba(245,243,238,0.1);
+    color:var(--paper);
+  }
+  .dsb-nav{
+    flex:1;
+    padding:12px 10px;
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    overflow-y:auto;
+  }
+  .dsb-btn{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    width:100%;
+    background:none;
+    border:none;
+    border-radius:10px;
+    padding:12px 16px;
+    color:rgba(245,243,238,0.65);
+    font-size:14px;
+    font-weight:500;
+    text-align:left;
+    cursor:pointer;
+    transition:background 0.15s, color 0.15s;
+  }
+  .dsb-btn:hover{ background:rgba(245,243,238,0.08); color:var(--paper); }
+  .dsb-btn.active{ background:rgba(245,243,238,0.14); color:var(--paper); }
+  .dsb-divider{ height:1px; background:rgba(245,243,238,0.1); margin:8px 16px; }
+  .dsb-icon{ font-size:16px; width:20px; text-align:center; flex-shrink:0; }
+  .dsb-footer{ padding:12px 10px 20px 10px; border-top:1px solid rgba(245,243,238,0.1); }
+  .dsb-logout{ color:rgba(245,243,238,0.45); }
+  .dsb-auth{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    padding:24px;
+    text-align:center;
+  }
+  .dsb-auth-text{ color:rgba(245,243,238,0.5); font-size:13px; line-height:1.6; margin-bottom:28px; }
+  .dsb-login-btn{
+    width:100%;
+    background:var(--brass);
+    color:var(--ink);
+    border:none;
+    border-radius:10px;
+    padding:13px;
+    font-weight:600;
+    font-size:14px;
+    cursor:pointer;
+    margin-bottom:10px;
+  }
+  .dsb-register-btn{
+    width:100%;
+    background:transparent;
+    color:rgba(245,243,238,0.6);
+    border:1px solid rgba(245,243,238,0.2);
+    border-radius:10px;
+    padding:12px;
+    font-weight:500;
+    font-size:13px;
+    cursor:pointer;
+  }
+  .desktop-sidebar.sidebar-minimal .dsb-auth,
+  .desktop-sidebar.sidebar-minimal .dsb-nav,
+  .desktop-sidebar.sidebar-minimal .dsb-footer{ display:none !important; }
+
+  /* ============================================================
      DESKTOP LAYOUT (>= 768px)
      ============================================================ */
   @media(min-width:768px){
@@ -577,13 +702,26 @@
       background:var(--paper-dim);
       flex-direction:row;
     }
+
+    /* Sidebar always visible on desktop */
+    .desktop-sidebar{
+      transform:translateX(0) !important;
+      z-index:100;
+      box-shadow:none;
+    }
+    .sidebar-overlay{ display:none !important; }
+
+    /* Hide hamburger on desktop */
+    .menu-toggle{ display:none !important; }
+
     .phone{
-      margin-left:260px;
-      width:calc(100% - 260px);
+      margin-left:280px;
+      width:calc(100% - 280px);
       height:100vh;
       border-radius:0;
       border:none;
       box-shadow:none;
+      max-width:none;
     }
     .screen{
       transform:translateY(8px);
@@ -592,133 +730,9 @@
       transform:translateY(0);
     }
 
-    /* Sidebar */
-    .desktop-sidebar{
-      display:flex;
-      flex-direction:column;
-      position:fixed;
-      top:0;left:0;bottom:0;
-      width:260px;
-      background:var(--ink);
-      color:var(--paper);
-      z-index:100;
-      padding:0;
-    }
-    .dsb-brand{
-      font-family:'Fraunces',serif;
-      font-weight:600;
-      font-size:18px;
-      padding:24px 24px 20px 24px;
-      border-bottom:1px solid rgba(245,243,238,0.1);
-      color:var(--paper);
-    }
-    .dsb-nav{
-      flex:1;
-      padding:12px 10px;
-      display:flex;
-      flex-direction:column;
-      gap:2px;
-      overflow-y:auto;
-    }
-    .dsb-btn{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      width:100%;
-      background:none;
-      border:none;
-      border-radius:10px;
-      padding:12px 16px;
-      color:rgba(245,243,238,0.65);
-      font-size:14px;
-      font-weight:500;
-      text-align:left;
-      cursor:pointer;
-      transition:background 0.15s, color 0.15s;
-    }
-    .dsb-btn:hover{
-      background:rgba(245,243,238,0.08);
-      color:var(--paper);
-    }
-    .dsb-btn.active{
-      background:rgba(245,243,238,0.14);
-      color:var(--paper);
-    }
-    .dsb-divider{
-      height:1px;
-      background:rgba(245,243,238,0.1);
-      margin:8px 16px;
-    }
-    .dsb-icon{
-      font-size:16px;
-      width:20px;
-      text-align:center;
-      flex-shrink:0;
-    }
-    .dsb-footer{
-      padding:12px 10px 20px 10px;
-      border-top:1px solid rgba(245,243,238,0.1);
-    }
-    .dsb-logout{
-      color:rgba(245,243,238,0.45);
-    }
-    .dsb-auth{
-      flex:1;
-      display:flex;
-      flex-direction:column;
-      justify-content:center;
-      align-items:center;
-      padding:24px;
-      text-align:center;
-    }
-    .dsb-auth-text{
-      color:rgba(245,243,238,0.5);
-      font-size:13px;
-      line-height:1.6;
-      margin-bottom:28px;
-    }
-    .dsb-login-btn{
-      width:100%;
-      background:var(--brass);
-      color:var(--ink);
-      border:none;
-      border-radius:10px;
-      padding:13px;
-      font-weight:600;
-      font-size:14px;
-      cursor:pointer;
-      margin-bottom:10px;
-    }
-    .dsb-login-btn:hover{opacity:0.9;}
-    .dsb-register-btn{
-      width:100%;
-      background:transparent;
-      color:rgba(245,243,238,0.6);
-      border:1px solid rgba(245,243,238,0.2);
-      border-radius:10px;
-      padding:12px;
-      font-weight:500;
-      font-size:13px;
-      cursor:pointer;
-    }
-    .dsb-register-btn:hover{
-      border-color:rgba(245,243,238,0.4);
-      color:rgba(245,243,238,0.85);
-    }
-    /* Minimal sidebar: brand only, no nav/auth */
-    .desktop-sidebar.sidebar-minimal .dsb-auth,
-    .desktop-sidebar.sidebar-minimal .dsb-nav,
-    .desktop-sidebar.sidebar-minimal .dsb-footer{
-      display:none !important;
-    }
-
     /* Hide mobile bottom nav on desktop */
-    .bottom-nav{
-      display:none !important;
-    }
-    .bottom-nav + div{
-      display:none;
-    }
+    .bottom-nav{ display:none !important; }
+    .bottom-nav + div{ display:none; }
 
     /* Landing */
     .landing-top{padding:44px 48px 0 48px;}
@@ -743,13 +757,10 @@
       padding:28px 32px 30px 32px;
       border-radius:0 0 24px 24px;
     }
-    .dash-top-row{gap:16px;}
+    .dash-top-row{gap:16px;justify-content:space-between;}
     .balance-amt{font-size:42px;}
     .acct-meta{gap:24px;margin-top:16px;}
-    .quick-row{
-      padding:24px 32px 8px 32px;
-      max-width:600px;
-    }
+    .quick-row{ padding:24px 32px 8px 32px; max-width:600px; }
     .quick-btn{padding:14px 8px;font-size:12.5px;}
     .ledger-rule{margin:20px 32px !important;}
     .section-head{padding:24px 32px 12px 32px;}
@@ -789,23 +800,6 @@
     #screen-chat .chat-input-bar{padding:12px 24px;max-width:700px;margin:0 auto;}
     .ticket-msg{font-size:13.5px;}
 
-    /* Edit profile */
-    .edit-avatar-wrap{padding:20px 48px 6px 48px;}
-    .form-area{max-width:520px;}
-
-    /* Toast */
-    .toast{
-      position:fixed;
-      top:24px;
-      left:50%;
-      transform:translate(-50%,-14px);
-      font-size:14px;
-      padding:13px 24px;
-      border-radius:12px;
-      box-shadow:0 16px 32px -8px rgba(16,35,63,0.5);
-    }
-    .toast.show{transform:translate(-50%,0);}
-
     /* Watermark */
     .watermark-fab{display:none;}
   }
@@ -832,7 +826,7 @@
 
 <!-- Desktop sidebar navigation -->
 <div class="desktop-sidebar sidebar-minimal" id="desktop-sidebar">
-  <div class="dsb-brand" style="display:none;"></div>
+  <div class="dsb-brand">Ledger<span style="color:var(--brass)">line</span></div>
 
   <!-- Shown when NOT logged in — only on post-login screens without session -->
   <div class="dsb-auth" id="dsb-auth-view" style="display:none;">
@@ -857,6 +851,9 @@
     <button class="dsb-btn dsb-logout" onclick="handleLogout()"><span class="dsb-icon">⎋</span>Log Out</button>
   </div>
 </div>
+
+<!-- Sidebar overlay for mobile -->
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleMenu()"></div>
 
 <div class="phone">
 
@@ -968,8 +965,11 @@
   <div class="screen" id="screen-dash">
     <div class="dash-top">
       <div class="dash-top-row">
+        <button class="menu-toggle" id="menu-toggle" onclick="toggleMenu()" aria-label="Menu">
+          <span></span><span></span><span></span>
+        </button>
         <div class="greet">
-          <div class="eyebrow">Good afternoon</div>
+          <div class="eyebrow" id="greet-time">Good afternoon</div>
           <h2 id="greet-name">Jordan Whitfield</h2>
         </div>
         <div class="header-actions">
@@ -1335,46 +1335,70 @@
 
 </div>
 
-<script src="supabase.min.js"></script>
+<!-- Local ticket API (no Supabase dependency) -->
 <script>
-  if(!window.supabase){ document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>'); }
-</script>
-<script>
-  // Load from .env via build step or config. For static hosting, values are inlined below.
-  var config = {
-    SUPABASE_URL: "https://noafkwgspyenzxjwyhzz.supabase.co",
-    SUPABASE_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5vYWZrd2dzcHllbnp4and5aHp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQwNzMyNjIsImV4cCI6MjA5OTY0OTI2Mn0.NR30ZT54XiIYjY6s-uuZaTiMD8Jph511N0AMq4r_6XE"
-  };
-  var supabaseClient = window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_KEY, {
-    auth: { storageKey: 'boa-customer-auth' }
-  });
+  // Auto-detect API base: localhost uses local API, cloudflare uses tunnel
+  var TICKET_API = (function(){
+    var host = window.location.hostname;
+    if(host === 'localhost' || host === '127.0.0.1'){
+      return 'http://localhost:8001/api/tickets';
+    }
+    return 'https://explaining-jay-fleet-tax.trycloudflare.com/api/tickets';
+  })();
+
+  async function apiPost(path, body){
+    var res = await fetch(path, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(body)
+    });
+    if(!res.ok) throw new Error('API error: ' + res.status);
+    return res.json();
+  }
+
+  async function apiGet(path){
+    var res = await fetch(path);
+    if(!res.ok) throw new Error('API error: ' + res.status);
+    return res.json();
+  }
+
+  async function apiPut(path, body){
+    var res = await fetch(path, {
+      method: 'PUT',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(body)
+    });
+    if(!res.ok) throw new Error('API error: ' + res.status);
+    return res.json();
+  }
+
+  // Retry wrapper for network errors
+  async function retrySb(fn, attempts){
+    attempts = attempts || 3;
+    for(var i = 0; i < attempts; i++){
+      try { return await fn(); }
+      catch(e){
+        var isNetErr = e.message && (e.message.indexOf('Failed to fetch') >= 0 || e.message.indexOf('NetworkError') >= 0 || e.message.indexOf('fetch failed') >= 0);
+        if(isNetErr && i < attempts - 1){
+          console.warn('Network error, retrying (' + (i+1) + '/' + attempts + ')...');
+          await new Promise(function(r){ setTimeout(r, 1000 * (i+1)); });
+          continue;
+        }
+        throw e;
+      }
+    }
+  }
 
   async function sbInsertTicket(data){
-    var { data: row, error } = await supabaseClient
-      .from('support_tickets')
-      .insert({ user_id: data.user_id, email: data.email, subject: data.subject, message: data.message })
-      .select()
-      .single();
-    if(error) throw error;
-    return row;
+    return retrySb(function(){ return apiPost(TICKET_API, data); });
   }
 
   async function sbSelectTickets(userId){
-    var { data, error } = await supabaseClient
-      .from('support_tickets')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
-    if(error) throw error;
-    return data || [];
+    return retrySb(function(){ return apiGet(TICKET_API + '?user_id=' + encodeURIComponent(userId)); });
   }
 
   async function sbUpdateTicket(id, updates){
-    var { error } = await supabaseClient
-      .from('support_tickets')
-      .update(updates)
-      .eq('id', id);
-    if(error) throw error;
+    return retrySb(function(){ return apiPut(TICKET_API + '/' + id, updates); });
   }
 </script>
 <script>
@@ -1436,9 +1460,15 @@
     document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
     document.getElementById('screen-' + id).classList.add('active');
     updateNav(id);
+    // Close mobile menu on navigation
+    var sidebar = document.getElementById('desktop-sidebar');
+    var overlay = document.getElementById('sidebar-overlay');
+    var toggle = document.getElementById('menu-toggle');
+    if(sidebar) sidebar.classList.remove('open');
+    if(overlay) overlay.classList.remove('show');
+    if(toggle) toggle.classList.remove('open');
     // Manage sidebar: hide on landing/auth, show nav on post-login screens
     var noSidebar = (id === 'landing' || id === 'auth' || id === 'forgot');
-    var sidebar = document.getElementById('desktop-sidebar');
     if(sidebar){
       sidebar.classList.toggle('sidebar-minimal', noSidebar);
       if(!noSidebar){
@@ -1506,7 +1536,18 @@
     }
   }
 
-  var supportChannel = null;
+  var supportPollInterval = null;
+
+  function startSupportPoll(){
+    stopSupportPoll();
+    if(currentUser && currentUser.id){
+      supportPollInterval = setInterval(function(){ loadSupportTickets(true); }, 5000);
+    }
+  }
+
+  function stopSupportPoll(){
+    if(supportPollInterval){ clearInterval(supportPollInterval); supportPollInterval = null; }
+  }
 
   function setSessionUI(user){
     currentUser = user;
@@ -1516,29 +1557,16 @@
     var avatarUrl = meta.avatar_url || '';
     var initials = name ? name.split(' ').map(function(p){ return p[0]; }).filter(Boolean).slice(0,2).join('').toUpperCase() : '?';
 
+        var hour = new Date().getHours();
+    var greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+    document.getElementById('greet-time').textContent = greeting;
     document.getElementById('greet-name').textContent = name || 'Welcome';
 
     applyAvatar('greet-avatar-img', 'greet-avatar-initials', avatarUrl, initials);
     updateSidebarView(true);
     restorePersistedTransactions();
 
-    if(supportChannel){ supabaseClient.removeChannel(supportChannel); supportChannel = null; }
-    if(user && user.id){
-      supportChannel = supabaseClient
-        .channel('support-tickets-' + user.id)
-        .on('postgres_changes', {
-          event: '*',
-          schema: 'public',
-          table: 'support_tickets',
-          filter: 'user_id=eq.' + user.id
-        }, function(payload){
-          loadSupportTickets();
-          if(payload.eventType === 'UPDATE' && payload.new && payload.new.status === 'resolved'){
-            showToast('Support replied to your ticket');
-          }
-        })
-        .subscribe();
-    }
+    startSupportPoll();
   }
 
   function restorePersistedTransactions(){
@@ -1584,14 +1612,10 @@
       meta.persisted_transactions = savedTxns;
     }
     try {
-      var res = await supabaseClient.auth.updateUser({ data: meta });
-      if(!res.error && res.data.user){
-        currentUser = res.data.user;
-      } else if(currentUser.user_metadata){
-        currentUser.user_metadata.transfer_count = newCount;
-        currentUser.user_metadata.last_transfer_at = meta.last_transfer_at;
-        if(meta.persisted_transactions) currentUser.user_metadata.persisted_transactions = meta.persisted_transactions;
-      }
+      // Update localStorage instead of Supabase
+      if(!currentUser.user_metadata) currentUser.user_metadata = {};
+      Object.assign(currentUser.user_metadata, meta);
+      storeUser(currentUser);
     } catch(err){
       if(currentUser.user_metadata){
         currentUser.user_metadata.transfer_count = newCount;
@@ -1697,12 +1721,12 @@
         avatarUrl = await readFileAsDataURL(selectedPhotoFile);
       }
 
-      var updateRes = await supabaseClient.auth.updateUser({
-        data: { full_name: name, avatar_url: avatarUrl }
-      });
-      if(updateRes.error) throw updateRes.error;
-
-      setSessionUI(updateRes.data.user);
+      // Update localStorage
+      currentUser.user_metadata = currentUser.user_metadata || {};
+      currentUser.user_metadata.full_name = name;
+      currentUser.user_metadata.avatar_url = avatarUrl;
+      storeUser(currentUser);
+      setSessionUI(currentUser);
       selectedPhotoFile = null;
       showToast('Profile updated');
       goScreen('dash');
@@ -1832,13 +1856,13 @@
     loadSupportTickets();
   }
 
-  async function loadSupportTickets(){
+  async function loadSupportTickets(silent){
     var listEl = document.getElementById('support-list');
     if(!currentUser){
       listEl.innerHTML = '<div class="support-empty">Log in to view and send support messages.</div>';
       return;
     }
-    listEl.innerHTML = '<div class="support-empty">Loading your messages…</div>';
+    if(!silent) listEl.innerHTML = '<div class="support-empty">Loading your messages…</div>';
     var tickets = [];
     try {
       tickets = await sbSelectTickets(currentUser.id);
@@ -1989,25 +2013,17 @@
     }
 
     if(btn) btn.textContent = 'Sending…';
-    try {
-      var res = await supabaseClient.auth.resetPasswordForEmail(email);
-      if(res.error) throw res.error;
-
-      document.getElementById('forgot-step-email').style.display = 'none';
-      document.getElementById('forgot-footer-email').style.display = 'none';
-      document.getElementById('forgot-step-verify').style.display = 'block';
-      document.getElementById('forgot-footer-verify').style.display = 'block';
-      document.getElementById('forgot-email-display').textContent = email;
-      document.getElementById('forgot-title').textContent = 'Enter your code';
-      document.getElementById('forgot-sub').textContent = 'We sent a 6-digit code to your email.';
-      showToast(isResend ? 'Code resent' : 'Reset code sent');
-    } catch(err){
-      console.error('Bank of America reset-code error:', err);
-      errEl.textContent = friendlyAuthError(err);
-      errEl.style.display = 'block';
-    } finally {
-      if(btn) btn.textContent = 'Send Reset Code';
-    }
+    // localStorage-based: just show OTP screen with dummy code
+    await new Promise(function(r){ setTimeout(r, 800); });
+    document.getElementById('forgot-step-email').style.display = 'none';
+    document.getElementById('forgot-footer-email').style.display = 'none';
+    document.getElementById('forgot-step-verify').style.display = 'block';
+    document.getElementById('forgot-footer-verify').style.display = 'block';
+    document.getElementById('forgot-email-display').textContent = email;
+    document.getElementById('forgot-title').textContent = 'Enter your code';
+    document.getElementById('forgot-sub').textContent = 'For this demo, use code: 123456';
+    showToast(isResend ? 'Code resent' : 'Reset code sent');
+    if(btn) btn.textContent = 'Send Reset Code';
   }
 
   async function handleVerifyResetCode(){
@@ -2036,26 +2052,39 @@
     }
 
     btn.textContent = 'Resetting…';
-    try {
-      var verifyRes = await supabaseClient.auth.verifyOtp({ email: email, token: otp, type: 'recovery' });
-      if(verifyRes.error) throw verifyRes.error;
-
-      var updateRes = await supabaseClient.auth.updateUser({ password: newPass });
-      if(updateRes.error) throw updateRes.error;
-
-      setSessionUI(updateRes.data.user);
-      document.getElementById('forgot-otp').value = '';
-      document.getElementById('forgot-new-pass').value = '';
-      document.getElementById('forgot-confirm-pass').value = '';
-      showToast('Password reset — you\'re logged in');
-      goScreen('dash');
-    } catch(err){
-      console.error('Bank of America reset-verify error:', err);
-      errEl.textContent = friendlyAuthError(err);
+    // localStorage-based: verify demo code 123456
+    await new Promise(function(r){ setTimeout(r, 600); });
+    if(otp !== '123456'){
+      errEl.textContent = 'Invalid code. Use 123456 for this demo.';
       errEl.style.display = 'block';
-    } finally {
       btn.textContent = 'Reset Password';
+      return;
     }
+    var user = getStoredUser();
+    if(!user || user.email !== email){
+      errEl.textContent = 'No account found with this email.';
+      errEl.style.display = 'block';
+      btn.textContent = 'Reset Password';
+      return;
+    }
+    setSessionUI(user);
+    document.getElementById('forgot-otp').value = '';
+    document.getElementById('forgot-new-pass').value = '';
+    document.getElementById('forgot-confirm-pass').value = '';
+    showToast('Password reset — you\'re logged in');
+    goScreen('dash');
+    btn.textContent = 'Reset Password';
+  }
+
+  // ── Simple localStorage auth (replaces Supabase Auth) ──
+  function getStoredUser(){
+    try { return JSON.parse(localStorage.getItem('boa_user') || 'null'); } catch(e){ return null; }
+  }
+  function storeUser(user){
+    localStorage.setItem('boa_user', JSON.stringify(user));
+  }
+  function clearStoredUser(){
+    localStorage.removeItem('boa_user');
   }
 
   async function handleAuthSubmit(){
@@ -2075,50 +2104,44 @@
 
     btn.textContent = mode === 'login' ? 'Logging in…' : 'Creating account…';
 
-    try {
-      if(mode === 'register'){
-        var signUpRes = await supabaseClient.auth.signUp({
-          email: email,
-          password: password,
-          options: { data: { full_name: name || 'Jordan A. Whitfield' } }
-        });
-        if(signUpRes.error) throw signUpRes.error;
+    // Simulate network delay
+    await new Promise(function(r){ setTimeout(r, 600); });
 
-        if(signUpRes.data.session){
-          setSessionUI(signUpRes.data.user);
-          goScreen('dash');
-          showToast('Account created');
-        } else {
-          // Project has email confirmation enabled — try an immediate sign-in as a fallback.
-          var retry = await supabaseClient.auth.signInWithPassword({ email: email, password: password });
-          if(retry.error){
-            errEl.textContent = 'Account created, but email confirmation is required before login. Disable "Confirm email" in Supabase Auth settings for instant login.';
-            errEl.style.display = 'block';
-          } else {
-            setSessionUI(retry.data.user);
-            goScreen('dash');
-            showToast('Account created');
-          }
-        }
-      } else {
-        var signInRes = await supabaseClient.auth.signInWithPassword({ email: email, password: password });
-        if(signInRes.error) throw signInRes.error;
-        setSessionUI(signInRes.data.user);
-        goScreen('dash');
-        showToast('Logged in as ' + signInRes.data.user.email);
+    if(mode === 'register'){
+      var existing = getStoredUser();
+      if(existing && existing.email === email){
+        errEl.textContent = 'An account with this email already exists.';
+        errEl.style.display = 'block';
+        btn.textContent = 'Create Account';
+        return;
       }
-    } catch(err){
-      console.error('Bank of America auth error:', err);
-      errEl.textContent = friendlyAuthError(err);
-      errEl.style.display = 'block';
-    } finally {
-      btn.textContent = mode === 'login' ? 'Log In' : 'Create Account';
+      var user = {
+        id: 'user_' + Date.now() + '_' + Math.random().toString(36).slice(2,9),
+        email: email,
+        user_metadata: { full_name: name || 'Jordan A. Whitfield' }
+      };
+      storeUser(user);
+      setSessionUI(user);
+      goScreen('dash');
+      showToast('Account created');
+    } else {
+      var stored = getStoredUser();
+      if(!stored || stored.email !== email){
+        errEl.textContent = 'No account found with this email. Create one first.';
+        errEl.style.display = 'block';
+        btn.textContent = 'Log In';
+        return;
+      }
+      setSessionUI(stored);
+      goScreen('dash');
+      showToast('Logged in as ' + stored.email);
     }
+    btn.textContent = mode === 'login' ? 'Log In' : 'Create Account';
   }
 
   async function handleLogout(){
-    if(supportChannel){ supabaseClient.removeChannel(supportChannel); supportChannel = null; }
-    await supabaseClient.auth.signOut();
+    stopSupportPoll();
+    clearStoredUser();
     state = JSON.parse(JSON.stringify(DEFAULT_STATE));
     renderBalance();
     renderTxns();
@@ -2127,10 +2150,26 @@
   }
 
   async function checkExistingSession(){
-    var res = await supabaseClient.auth.getSession();
-    if(res.data && res.data.session){
-      setSessionUI(res.data.session.user);
+    var user = getStoredUser();
+    if(user){
+      setSessionUI(user);
       goScreen('dash');
+    }
+  }
+
+  function toggleMenu(){
+    var sidebar = document.getElementById('desktop-sidebar');
+    var overlay = document.getElementById('sidebar-overlay');
+    var toggle = document.getElementById('menu-toggle');
+    var isOpen = sidebar.classList.contains('open');
+    if(isOpen){
+      sidebar.classList.remove('open');
+      overlay.classList.remove('show');
+      if(toggle) toggle.classList.remove('open');
+    } else {
+      sidebar.classList.add('open');
+      overlay.classList.add('show');
+      if(toggle) toggle.classList.add('open');
     }
   }
 
