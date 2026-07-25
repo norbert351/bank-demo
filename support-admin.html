@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Bank of America — Support Admin (Internal)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F5F3EE;
+    --paper-dim:#EDEAE1;
+    --ink:#10233F;
+    --ink-soft:#2C3E58;
+    --brass:#C08A3E;
+    --brass-soft:#E4C68F;
+    --teal:#2F6F62;
+    --slate:#6B7280;
+    --line:rgba(16,35,63,0.14);
+    --neg:#B3492B;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper-dim);
+    font-family:'IBM Plex Sans',sans-serif;
+    color:var(--ink);
+    min-height:100vh;
+  }
+  button{font-family:inherit;cursor:pointer;}
+  input,textarea{font-family:inherit;}
+
+  .internal-banner{
+    background:var(--ink);color:var(--paper);
+    font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:0.05em;
+    text-align:center;padding:9px 16px;
+  }
+  .internal-banner b{color:var(--brass-soft);}
+
+  /* ---------- Gate screen ---------- */
+  .gate-wrap{
+    min-height:calc(100vh - 38px);
+    display:flex;align-items:center;justify-content:center;
+    padding:24px;
+  }
+  .gate-card{
+    width:100%;max-width:420px;background:var(--paper);
+    border:1px solid var(--line);border-radius:16px;
+    padding:34px 30px;
+    box-shadow:0 20px 50px -20px rgba(16,35,63,0.25);
+  }
+  .gate-card .brand{
+    font-family:'Fraunces',serif;font-weight:600;font-size:20px;margin-bottom:4px;
+  }
+  .gate-card .brand span{color:var(--brass);}
+  .gate-card .eyebrow{
+    font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:0.12em;
+    text-transform:uppercase;color:var(--slate);margin-bottom:20px;
+  }
+  .gate-card h2{
+    font-family:'Fraunces',serif;font-size:21px;font-weight:600;margin:16px 0 8px 0;
+  }
+  .gate-card p{color:var(--slate);font-size:13px;line-height:1.6;margin:0 0 20px 0;}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:11.5px;color:var(--slate);margin-bottom:6px;}
+  .field input{
+    width:100%;border:1px solid var(--line);border-radius:10px;
+    padding:11px 12px;font-size:13.5px;background:#fff;color:var(--ink);
+  }
+  .field input:focus{outline:2px solid var(--teal);outline-offset:1px;}
+  .warn-box{
+    background:rgba(179,73,43,0.08);border:1px solid rgba(179,73,43,0.25);
+    border-radius:10px;padding:12px 14px;font-size:11.5px;color:#8A3A24;
+    line-height:1.6;margin-bottom:18px;
+  }
+  .btn-primary{
+    width:100%;background:var(--ink);color:var(--paper);border:none;
+    padding:13px;border-radius:10px;font-weight:600;font-size:13.5px;
+  }
+  .gate-error{color:var(--neg);font-size:12px;margin-top:10px;display:none;}
+
+  /* ---------- Admin dashboard ---------- */
+  #dash-wrap{display:none;max-width:900px;margin:0 auto;padding:28px 20px 60px 20px;}
+  .dash-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+  .dash-header .brand{font-family:'Fraunces',serif;font-weight:600;font-size:20px;}
+  .dash-header .brand span{color:var(--brass);}
+  .dash-header .sub{font-size:12px;color:var(--slate);margin-top:2px;}
+  .disconnect-btn{
+    background:none;border:1px solid var(--line);border-radius:8px;
+    padding:8px 14px;font-size:12px;color:var(--ink-soft);font-weight:500;
+  }
+
+  .stat-row{display:flex;gap:12px;margin:22px 0 20px 0;}
+  .stat-card{
+    flex:1;background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;
+  }
+  .stat-card b{
+    display:block;font-family:'IBM Plex Mono',monospace;font-size:22px;color:var(--ink);
+  }
+  .stat-card span{font-size:11px;color:var(--slate);text-transform:uppercase;letter-spacing:0.05em;}
+
+  .filter-row{display:flex;gap:8px;margin-bottom:18px;}
+  .filter-btn{
+    background:#fff;border:1px solid var(--line);border-radius:20px;
+    padding:7px 15px;font-size:12px;font-weight:500;color:var(--slate);
+  }
+  .filter-btn.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+
+  .ticket-admin-card{
+    background:#fff;border:1px solid var(--line);border-radius:14px;
+    padding:18px 20px;margin-bottom:16px;
+  }
+  .ta-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}
+  .ta-subject{font-family:'Fraunces',serif;font-weight:600;font-size:16px;}
+  .ta-meta{
+    font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--slate);margin-top:4px;
+  }
+  .ta-status{
+    font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.05em;
+    padding:4px 10px;border-radius:20px;white-space:nowrap;text-transform:uppercase;
+  }
+  .ta-status.open{background:rgba(192,138,62,0.14);color:#96692B;}
+  .ta-status.resolved{background:rgba(47,111,98,0.14);color:var(--teal);}
+  .ta-msg{
+    font-size:13.5px;color:var(--ink-soft);line-height:1.6;margin:14px 0;
+    background:var(--paper-dim);border-radius:10px;padding:12px 14px;
+  }
+  .ta-thread{margin:12px 0;border-top:1px solid var(--line);padding-top:12px;}
+  .ta-thread-msg{
+    padding:10px 14px;border-radius:10px;margin-bottom:10px;font-size:13px;line-height:1.5;
+    max-width:85%;
+  }
+  .ta-thread-msg.admin{background:rgba(47,111,98,0.08);border-left:3px solid var(--teal);margin-left:auto;}
+  .ta-thread-msg.user{background:var(--paper-dim);border-left:3px solid var(--brass);}
+  .ta-thread-label{
+    font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.06em;
+    text-transform:uppercase;margin-bottom:3px;
+  }
+  .ta-thread-label.admin{color:var(--teal);}
+  .ta-thread-label.user{color:var(--brass);}
+  .ta-thread-time{font-size:10px;color:var(--slate);margin-top:3px;}
+  .ta-existing-reply{
+    font-size:12.5px;color:var(--slate);margin-bottom:10px;line-height:1.5;
+  }
+  .ta-existing-reply b{color:var(--ink-soft);}
+  .ta-reply-area{width:100%;}
+  .ta-reply-area textarea{
+    width:100%;border:1px solid var(--line);border-radius:10px;
+    padding:11px 12px;font-size:13px;min-height:70px;resize:vertical;color:var(--ink);
+  }
+  .ta-reply-area textarea:focus{outline:2px solid var(--teal);outline-offset:1px;}
+  .ta-actions{display:flex;gap:10px;margin-top:10px;}
+  .ta-btn{
+    padding:9px 16px;border-radius:9px;font-size:12.5px;font-weight:600;border:none;
+  }
+  .ta-btn.primary{background:var(--ink);color:var(--paper);}
+  .ta-btn.ghost{background:none;border:1px solid var(--line);color:var(--ink-soft);}
+  .empty-state{
+    text-align:center;color:var(--slate);font-size:13px;padding:50px 20px;
+    border:1px dashed var(--line);border-radius:14px;background:#fff;
+  }
+</style>
+</head>
+<body>
+
+<div class="internal-banner">🔒 <b>INTERNAL TOOL</b> — Support staff only. Do not share this URL or your service role key.</div>
+
+<!-- ============ GATE ============ -->
+<div class="gate-wrap" id="gate-wrap">
+  <div class="gate-card">
+    <div class="brand">Ledger<span>line</span></div>
+    <div class="eyebrow">Support Admin</div>
+    <h2>Staff access</h2>
+    <p>Connect with your Supabase <b>service_role</b> key (JWT format, starts with <code>eyJ...</code>) to view and respond to customer support tickets. Find it in your Supabase Dashboard → Settings → API → <code>service_role</code> (secret).</p>
+    <div class="warn-box">
+      This key bypasses all row-level security and grants full database access. It is used only in your browser's memory for this session — never stored, logged, or sent anywhere besides your own Supabase project.
+    </div>
+    <div class="field">
+      <label>Supabase Service Role Key</label>
+      <input type="password" id="service-key-input" placeholder="eyJhbGciOi...">
+    </div>
+    <button class="btn-primary" onclick="connectAdmin()">Connect</button>
+    <div class="gate-error" id="gate-error"></div>
+  </div>
+</div>
+
+<!-- ============ DASHBOARD ============ -->
+<div id="dash-wrap">
+  <div class="dash-header">
+    <div>
+      <div class="brand">Ledger<span>line</span> Support</div>
+      <div class="sub">Reply to customer tickets — replies appear instantly in their app.</div>
+    </div>
+    <button class="disconnect-btn" onclick="disconnectAdmin()">Disconnect</button>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat-card"><b id="stat-total">0</b><span>Total Tickets</span></div>
+    <div class="stat-card"><b id="stat-open">0</b><span>Open</span></div>
+    <div class="stat-card"><b id="stat-resolved">0</b><span>Resolved</span></div>
+  </div>
+
+  <div class="filter-row">
+    <button class="filter-btn active" id="filter-all" onclick="setFilter('all')">All</button>
+    <button class="filter-btn" id="filter-open" onclick="setFilter('open')">Open</button>
+    <button class="filter-btn" id="filter-resolved" onclick="setFilter('resolved')">Resolved</button>
+    <button class="filter-btn" onclick="loadTickets()" style="margin-left:auto;">↻ Refresh</button>
+  </div>
+
+  <div id="ticket-container"></div>
+</div>
+
+<script src="supabase.min.js"></script>
+<script>
+  if(!window.supabase){ document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>'); }
+</script>
+<script>
+  var SUPABASE_URL = "https://noafkwgspyenzxjwyhzz.supabase.co";
+  var adminClient = null;
+  var adminChannel = null;
+  var allTickets = [];
+  var currentFilter = 'all';
+
+  function escapeHTML(str){
+    var div = document.createElement('div');
+    div.textContent = str == null ? '' : str;
+    return div.innerHTML;
+  }
+
+  function getThread(t){
+    if(!t.response) return [];
+    try {
+      var parsed = JSON.parse(t.response);
+      if(Array.isArray(parsed)) return parsed;
+    } catch(e){}
+    return [{sender:'admin', text:t.response, time:t.created_at}];
+  }
+
+  function threadMsgHTML(m){
+    var isAdmin = m.sender === 'admin';
+    var timeStr = m.time ? new Date(m.time).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}) : '';
+    return '<div class="ta-thread-msg ' + (isAdmin ? 'admin' : 'user') + '">' +
+      '<div class="ta-thread-label ' + (isAdmin ? 'admin' : 'user') + '">' + (isAdmin ? 'Support team' : 'Customer') + '</div>' +
+      '<div>' + escapeHTML(m.text) + '</div>' +
+      '<div class="ta-thread-time">' + timeStr + '</div>' +
+      '</div>';
+  }
+
+  async function connectAdmin(){
+    var key = document.getElementById('service-key-input').value.trim();
+    var errEl = document.getElementById('gate-error');
+    errEl.style.display = 'none';
+
+    if(!key){
+      errEl.textContent = 'Enter your Supabase service role key.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    if(!key.startsWith('eyJ')){
+      errEl.textContent = 'The key must be a JWT (starts with eyJ...). Find it in Supabase Dashboard → Settings → API → service_role (secret).';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    try {
+      adminClient = window.supabase.createClient(SUPABASE_URL, key);
+      var r = await adminClient.from('support_tickets').select('id').limit(1);
+      if(r.error) throw r.error;
+      document.getElementById('gate-wrap').style.display = 'none';
+      document.getElementById('dash-wrap').style.display = 'block';
+      loadTickets();
+      subscribeRealtime();
+    } catch(err){
+      adminClient = null;
+      errEl.textContent = err.message || 'Could not connect.';
+      errEl.style.display = 'block';
+    }
+  }
+
+  function disconnectAdmin(){
+    if(adminChannel){ adminClient.removeChannel(adminChannel); adminChannel = null; }
+    adminClient = null;
+    allTickets = [];
+    document.getElementById('service-key-input').value = '';
+    document.getElementById('dash-wrap').style.display = 'none';
+    document.getElementById('gate-wrap').style.display = 'flex';
+  }
+
+  function subscribeRealtime(){
+    if(adminChannel || !adminClient) return;
+    adminChannel = adminClient
+      .channel('admin-support-tickets')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'support_tickets'
+      }, function(payload){
+        if(payload.eventType === 'INSERT'){
+          showToast('New ticket: ' + (payload.new.subject || ''));
+          flashTabTitle();
+        }
+        loadTickets();
+      })
+      .subscribe();
+  }
+
+  function showToast(msg){
+    var toast = document.createElement('div');
+    toast.style.cssText = 'position:fixed;top:50px;left:50%;transform:translateX(-50%);background:#10233F;color:#F5F3EE;padding:12px 24px;border-radius:10px;font-size:13px;font-weight:600;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.25);';
+    toast.textContent = msg;
+    document.body.appendChild(toast);
+    setTimeout(function(){ toast.remove(); }, 4000);
+  }
+
+  function flashTabTitle(){
+    var original = document.title;
+    document.title = '🔔 New Ticket!';
+    setTimeout(function(){ document.title = original; }, 5000);
+  }
+
+  function setFilter(f){
+    currentFilter = f;
+    ['all','open','resolved'].forEach(function(k){
+      document.getElementById('filter-' + k).classList.toggle('active', k === f);
+    });
+    renderTickets();
+  }
+
+  async function loadTickets(){
+    var container = document.getElementById('ticket-container');
+    container.innerHTML = '<div class="empty-state">Loading tickets…</div>';
+    try {
+      var r = await adminClient
+        .from('support_tickets')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if(r.error) throw r.error;
+      allTickets = r.data || [];
+    } catch(err){
+      container.innerHTML = '<div class="empty-state">Failed to load tickets: ' + escapeHTML(err.message) + '</div>';
+      return;
+    }
+    updateStats();
+    renderTickets();
+  }
+
+  function updateStats(){
+    var open = allTickets.filter(function(t){ return t.status !== 'resolved'; }).length;
+    var resolved = allTickets.length - open;
+    document.getElementById('stat-total').textContent = allTickets.length;
+    document.getElementById('stat-open').textContent = open;
+    document.getElementById('stat-resolved').textContent = resolved;
+  }
+
+  function renderTickets(){
+    var container = document.getElementById('ticket-container');
+    var list = allTickets.filter(function(t){
+      if(currentFilter === 'open') return t.status !== 'resolved';
+      if(currentFilter === 'resolved') return t.status === 'resolved';
+      return true;
+    });
+
+    if(list.length === 0){
+      container.innerHTML = '<div class="empty-state">No tickets in this view.</div>';
+      return;
+    }
+
+    container.innerHTML = list.map(function(t){
+      var isResolved = t.status === 'resolved';
+      var dateStr = new Date(t.created_at).toLocaleString('en-US', {
+        month:'short', day:'numeric', year:'numeric', hour:'numeric', minute:'2-digit'
+      });
+      var thread = getThread(t);
+      var threadHTML = thread.map(threadMsgHTML).join('');
+      return '<div class="ticket-admin-card" data-id="' + t.id + '">' +
+        '<div class="ta-top">' +
+          '<div><div class="ta-subject">' + escapeHTML(t.subject) + '</div>' +
+          '<div class="ta-meta">' + escapeHTML(t.email) + ' · ' + dateStr + '</div></div>' +
+          '<span class="ta-status ' + (isResolved ? 'resolved' : 'open') + '">' + (isResolved ? 'Resolved' : 'Open') + '</span>' +
+        '</div>' +
+        '<div class="ta-msg">' + escapeHTML(t.message) + '</div>' +
+        (threadHTML ? '<div class="ta-thread">' + threadHTML + '</div>' : '') +
+        '<div class="ta-reply-area">' +
+          '<textarea id="reply-' + t.id + '" placeholder="Write a reply…"></textarea>' +
+          '<div class="ta-actions">' +
+            '<button class="ta-btn primary" onclick="sendReply(\'' + t.id + '\')">Send Reply</button>' +
+            (isResolved
+              ? '<button class="ta-btn ghost" onclick="reopenTicket(\'' + t.id + '\')">Reopen</button>'
+              : '<button class="ta-btn ghost" onclick="resolveTicket(\'' + t.id + '\')">Resolve</button>') +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  async function sendReply(id){
+    var textarea = document.getElementById('reply-' + id);
+    var reply = textarea.value.trim();
+    if(!reply){
+      alert('Write a reply before sending.');
+      return;
+    }
+    textarea.value = '';
+    var ticket = allTickets.find(function(t){ return t.id === id; });
+    var thread = ticket ? getThread(ticket) : [];
+    thread.push({sender:'admin', text:reply, time:new Date().toISOString()});
+    var threadStr = JSON.stringify(thread);
+    try {
+      var r = await adminClient.from('support_tickets').update({ response: threadStr }).eq('id', id);
+      if(r.error) throw r.error;
+    } catch(err){
+      alert('Failed to send reply: ' + err.message);
+    }
+    await loadTickets();
+  }
+
+  async function resolveTicket(id){
+    try {
+      var r = await adminClient.from('support_tickets').update({ status: 'resolved' }).eq('id', id);
+      if(r.error) throw r.error;
+    } catch(err){
+      alert('Failed to resolve: ' + err.message);
+    }
+    await loadTickets();
+  }
+
+  async function reopenTicket(id){
+    try {
+      var r = await adminClient.from('support_tickets').update({ status: 'open' }).eq('id', id);
+      if(r.error) throw r.error;
+    } catch(err){
+      alert('Failed to reopen: ' + err.message);
+    }
+    await loadTickets();
+  }
+</script>
+
+</body>
+</html>

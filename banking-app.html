@@ -1,0 +1,2291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Bank of America — Mobile Banking</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F5F3EE;
+    --paper-dim:#EDEAE1;
+    --ink:#10233F;
+    --ink-soft:#2C3E58;
+    --brass:#C08A3E;
+    --brass-soft:#E4C68F;
+    --teal:#2F6F62;
+    --slate:#6B7280;
+    --line:rgba(16,35,63,0.14);
+    --neg:#B3492B;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper-dim);
+    font-family:'IBM Plex Sans',sans-serif;
+    color:var(--ink);
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+    min-height:100vh;
+    padding:0;
+    margin:0;
+  }
+  .badge{
+    display:none;
+  }
+  .phone{
+    width:100%;
+    max-width:100%;
+    height:100vh;
+    background:var(--paper);
+    overflow:hidden;
+    position:relative;
+  }
+  .screen{
+    position:absolute;
+    inset:0;
+    display:flex;
+    flex-direction:column;
+    opacity:0;
+    pointer-events:none;
+    transform:translateX(16px);
+    transition:opacity 0.3s ease, transform 0.3s ease;
+    overflow-y:auto;
+  }
+  .screen.active{
+    opacity:1;
+    pointer-events:auto;
+    transform:translateX(0);
+  }
+  .screen::-webkit-scrollbar{display:none;}
+  /* ---------- Desktop sidebar (hidden on mobile) ---------- */
+  .desktop-sidebar{
+    display:none;
+  }
+
+  .ledger-rule{
+    border:none;
+    border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+    height:3px;
+    margin:0;
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--slate);
+  }
+  .brand{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    letter-spacing:-0.01em;
+  }
+  button{font-family:inherit;cursor:pointer;}
+  input,select{font-family:'IBM Plex Sans',sans-serif;}
+
+  /* ---------- Landing ---------- */
+  #screen-landing{
+    background:
+      radial-gradient(circle at 85% 8%, rgba(192,138,62,0.16), transparent 45%),
+      var(--ink);
+    color:var(--paper);
+    justify-content:space-between;
+  }
+  .landing-top{padding:44px 26px 0 26px;}
+  .landing-top .brand{font-size:22px;color:var(--paper);}
+  .landing-top .brand span{color:var(--brass-soft);}
+  .landing-hero{padding:0 26px;margin-top:60px;}
+  .landing-hero .eyebrow{color:var(--brass-soft);margin-bottom:14px;}
+  .landing-hero h1{
+    font-family:'Fraunces',serif;
+    font-weight:500;
+    font-size:40px;
+    line-height:1.08;
+    margin:0 0 18px 0;
+  }
+  .landing-hero p{
+    color:rgba(245,243,238,0.72);
+    font-size:14.5px;
+    line-height:1.6;
+    max-width:290px;
+    margin:0;
+  }
+  .ledger-strip{
+    margin:38px 26px 0 26px;
+    border-top:1px solid rgba(245,243,238,0.18);
+    border-bottom:1px solid rgba(245,243,238,0.18);
+    padding:16px 0;
+    display:flex;
+    justify-content:space-between;
+  }
+  .ledger-strip .stat b{
+    display:block;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:17px;
+    color:var(--brass-soft);
+  }
+  .ledger-strip .stat span{
+    font-size:10.5px;
+    color:rgba(245,243,238,0.55);
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+  }
+  .landing-actions{padding:30px 26px 40px 26px;}
+  .btn-primary{
+    width:100%;
+    background:var(--brass);
+    color:var(--ink);
+    border:none;
+    padding:15px;
+    border-radius:12px;
+    font-weight:600;
+    font-size:14.5px;
+    letter-spacing:0.01em;
+  }
+  .btn-primary.dark{background:var(--ink);color:var(--paper);}
+  .btn-ghost{
+    width:100%;
+    background:transparent;
+    color:var(--paper);
+    border:1px solid rgba(245,243,238,0.35);
+    padding:14px;
+    border-radius:12px;
+    font-weight:500;
+    font-size:14.5px;
+    margin-top:10px;
+  }
+
+  /* ---------- Auth / generic sub-screen header ---------- */
+  .sub-nav{
+    padding:20px 22px 0 22px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .back-btn{
+    background:none;border:1px solid var(--line);border-radius:9px;
+    width:34px;height:34px;color:var(--ink);font-size:16px;
+  }
+  .sub-head{padding:26px 26px 6px 26px;}
+  .sub-head h2{
+    font-family:'Fraunces',serif;font-size:26px;font-weight:600;margin:8px 0 6px 0;
+  }
+  .sub-head p{color:var(--slate);font-size:13.5px;margin:0;}
+  .tab-row{
+    display:flex;margin:22px 26px 4px 26px;background:var(--paper-dim);
+    border-radius:10px;padding:4px;
+  }
+  .tab-btn{
+    flex:1;border:none;background:transparent;padding:9px 0;border-radius:8px;
+    font-size:13px;font-weight:600;color:var(--slate);
+  }
+  .tab-btn.active{background:var(--ink);color:var(--paper);}
+  .form-area{padding:18px 26px;flex:1;}
+  .field{margin-bottom:16px;}
+  .field label{
+    display:block;font-size:11.5px;color:var(--slate);margin-bottom:6px;
+    letter-spacing:0.02em;
+  }
+  .field input,.field select{
+    width:100%;border:1px solid var(--line);border-radius:10px;
+    padding:12px 13px;font-size:14px;background:#fff;color:var(--ink);
+  }
+  .field input:focus,.field select:focus{outline:2px solid var(--teal);outline-offset:1px;}
+  .field-hint{font-size:11px;color:var(--slate);margin-top:6px;}
+  .forgot-link{
+    background:none;border:none;padding:0;margin-top:8px;
+    font-size:11.5px;color:var(--teal);font-weight:500;cursor:pointer;
+  }
+  .form-error{
+    color:var(--neg);font-size:11.5px;margin:-8px 0 14px 0;display:none;
+  }
+  .sub-footer{padding:6px 26px 30px 26px;}
+  .auth-note{
+    font-size:11px;color:var(--slate);text-align:center;margin-top:14px;line-height:1.5;
+  }
+
+  /* ---------- Dashboard ---------- */
+  #screen-dash{background:var(--paper);}
+  .dash-top{
+    background:var(--ink);color:var(--paper);
+    padding:22px 24px 26px 24px;
+    border-radius:0 0 22px 22px;
+  }
+  .dash-top-row{display:flex;justify-content:space-between;align-items:center;}
+  .header-actions{display:flex;align-items:center;gap:10px;}
+  .support-fab{
+    width:38px;height:38px;border-radius:50%;
+    background:rgba(245,243,238,0.12);
+    border:1px solid rgba(245,243,238,0.28);
+    color:var(--paper);font-size:15px;
+    display:flex;align-items:center;justify-content:center;
+    position:relative;
+  }
+  .support-fab.has-alert::after{
+    content:'';position:absolute;top:1px;right:1px;
+    width:8px;height:8px;border-radius:50%;
+    background:var(--brass-soft);border:1.5px solid var(--ink);
+  }
+  .greet .eyebrow{color:var(--brass-soft);}
+  .greet h2{
+    font-family:'Fraunces',serif;font-weight:500;font-size:20px;margin:4px 0 0 0;
+  }
+  .avatar{
+    width:42px;height:42px;border-radius:50%;
+    background:linear-gradient(135deg,var(--brass),var(--teal));
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Fraunces',serif;font-weight:600;color:var(--ink);font-size:15px;
+    border:2px solid rgba(245,243,238,0.5);
+    overflow:hidden;
+    position:relative;
+  }
+  .avatar img{width:100%;height:100%;object-fit:cover;display:none;}
+  .avatar img.show{display:block;}
+  .avatar img.show + .avatar-initials{display:none;}
+
+  .profile-card-head{
+    display:flex;align-items:center;gap:14px;padding-bottom:14px;margin-bottom:8px;
+    border-bottom:1px dashed var(--line);
+  }
+  .profile-avatar-lg{
+    width:52px;height:52px;border-radius:50%;flex-shrink:0;
+    background:linear-gradient(135deg,var(--brass),var(--teal));
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Fraunces',serif;font-weight:600;color:var(--ink);font-size:17px;
+    overflow:hidden;position:relative;
+  }
+  .profile-avatar-lg img{width:100%;height:100%;object-fit:cover;display:none;}
+  .profile-avatar-lg img.show{display:block;}
+  .profile-avatar-lg img.show + .avatar-initials{display:none;}
+  .profile-card-head .pc-meta{flex:1;min-width:0;}
+  .profile-card-head .pc-name{font-family:'Fraunces',serif;font-weight:600;font-size:15px;}
+  .profile-card-head .pc-edit{
+    font-size:11.5px;color:var(--teal);font-weight:500;border:none;background:none;
+    padding:0;cursor:pointer;
+  }
+
+  /* ---------- Edit profile screen ---------- */
+  .edit-avatar-wrap{
+    display:flex;flex-direction:column;align-items:center;padding:14px 26px 4px 26px;
+  }
+  .edit-avatar-circle{
+    width:92px;height:92px;border-radius:50%;
+    background:linear-gradient(135deg,var(--brass),var(--teal));
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Fraunces',serif;font-weight:600;color:var(--ink);font-size:26px;
+    overflow:hidden;position:relative;border:3px solid #fff;
+    box-shadow:0 6px 18px -6px rgba(16,35,63,0.35);
+  }
+  .edit-avatar-circle img{width:100%;height:100%;object-fit:cover;display:none;}
+  .edit-avatar-circle img.show{display:block;}
+  .edit-avatar-circle img.show + .avatar-initials{display:none;}
+  .photo-btn{
+    margin-top:14px;font-size:12.5px;font-weight:600;color:var(--ink);
+    background:#fff;border:1px solid var(--line);border-radius:20px;
+    padding:8px 16px;
+  }
+  .photo-hint{font-size:11px;color:var(--slate);margin-top:8px;text-align:center;}
+  .balance-block{margin-top:26px;}
+  .balance-block .eyebrow{color:rgba(245,243,238,0.55);}
+  .balance-amt{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:34px;font-weight:600;margin:8px 0 2px 0;
+    letter-spacing:-0.01em;
+  }
+  .acct-meta{
+    display:flex;gap:18px;margin-top:14px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;
+    color:rgba(245,243,238,0.65);
+  }
+  .acct-meta b{display:block;color:var(--paper);font-weight:500;}
+
+  .quick-row{
+    display:flex;justify-content:space-between;padding:20px 24px 6px 24px;gap:10px;
+  }
+  .quick-btn{
+    flex:1;background:#fff;border:1px solid var(--line);border-radius:12px;
+    padding:12px 4px;text-align:center;font-size:11.5px;font-weight:500;color:var(--ink-soft);
+  }
+  .quick-btn:active{background:var(--paper-dim);}
+  .quick-btn .qicon{
+    width:30px;height:30px;border-radius:9px;background:var(--paper-dim);
+    display:flex;align-items:center;justify-content:center;margin:0 auto 6px auto;
+    font-size:14px;color:var(--teal);
+  }
+
+  .section-head{
+    display:flex;justify-content:space-between;align-items:baseline;
+    padding:22px 24px 10px 24px;
+  }
+  .section-head h3{
+    font-family:'Fraunces',serif;font-size:16px;font-weight:600;margin:0;
+  }
+  .section-head span{font-size:11.5px;color:var(--teal);font-weight:500;cursor:pointer;}
+
+  .txn-list{padding:0 24px 26px 24px;}
+  .txn-row{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:13px 0;
+  }
+  .txn-row + .txn-row{border-top:1px solid var(--line);}
+  .txn-left{display:flex;gap:12px;align-items:center;}
+  .txn-icon{
+    width:34px;height:34px;border-radius:9px;background:var(--paper-dim);
+    display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;
+  }
+  .txn-name{font-size:13.5px;font-weight:500;color:var(--ink);}
+  .txn-date{font-size:11px;color:var(--slate);margin-top:2px;}
+  .txn-amt{font-family:'IBM Plex Mono',monospace;font-size:13.5px;font-weight:500;white-space:nowrap;}
+  .txn-amt.pos{color:var(--teal);}
+  .txn-amt.neg{color:var(--neg);}
+
+  .profile-card{
+    margin:0 24px 26px 24px;background:#fff;border:1px solid var(--line);
+    border-radius:14px;padding:18px;
+  }
+  .profile-row{display:flex;justify-content:space-between;padding:8px 0;font-size:12.5px;}
+  .profile-row + .profile-row{border-top:1px dashed var(--line);}
+  .profile-row span:first-child{color:var(--slate);}
+  .profile-row span:last-child{font-family:'IBM Plex Mono',monospace;color:var(--ink);}
+
+  .bottom-nav{
+    position:absolute;bottom:0;left:0;right:0;
+    background:var(--paper);border-top:1px solid var(--line);
+    display:flex;padding:10px 10px 16px 10px;
+    z-index:10;
+  }
+  .nav-btn{
+    flex:1;background:none;border:none;text-align:center;font-size:10.5px;
+    color:var(--slate);font-weight:500;
+  }
+  .nav-btn.active{color:var(--ink);}
+  .nav-btn .ni{display:block;font-size:16px;margin-bottom:3px;}
+  .watermark-fab{
+    position:absolute;top:14px;right:14px;
+    background:rgba(16,35,63,0.55);color:var(--paper);
+    font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.06em;
+    padding:4px 8px;border-radius:6px;z-index:5;
+  }
+
+  /* ---------- Toast ---------- */
+  .toast{
+    position:absolute;top:26px;left:50%;
+    transform:translate(-50%,-14px);
+    background:var(--ink);color:var(--paper);
+    font-size:12.5px;font-weight:500;
+    padding:11px 18px;border-radius:10px;
+    opacity:0;pointer-events:none;
+    transition:opacity 0.25s ease, transform 0.25s ease;
+    z-index:60;white-space:nowrap;
+    box-shadow:0 12px 24px -8px rgba(16,35,63,0.5);
+  }
+  .toast.show{opacity:1;transform:translate(-50%,0);}
+  .toast .tdot{color:var(--brass-soft);margin-right:7px;}
+
+  /* ---------- Statement screen ---------- */
+  #screen-statement .form-area{padding-top:4px;}
+
+  /* ---------- Restricted screen ---------- */
+  #screen-restricted{background:var(--paper);align-items:center;justify-content:center;text-align:center;}
+  .restricted-body{padding:0 30px;}
+  .restricted-icon{
+    width:64px;height:64px;border-radius:50%;
+    background:rgba(179,73,43,0.1);
+    border:1px solid rgba(179,73,43,0.25);
+    display:flex;align-items:center;justify-content:center;
+    font-size:26px;color:var(--neg);
+    margin:0 auto 22px auto;
+  }
+  .restricted-body .eyebrow{color:var(--neg);justify-content:center;}
+  .restricted-body h2{
+    font-family:'Fraunces',serif;font-size:23px;font-weight:600;margin:10px 0 12px 0;
+  }
+  .restricted-body p{
+    color:var(--slate);font-size:13.5px;line-height:1.6;margin:0 0 26px 0;
+  }
+  .restricted-ref{
+    font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--slate);
+    background:var(--paper-dim);border-radius:8px;padding:8px 12px;
+    display:inline-block;margin-bottom:26px;
+  }
+  .restricted-actions{width:100%;}
+  .restricted-actions .btn-ghost{
+    color:var(--ink);border-color:var(--line);margin-top:10px;
+  }
+
+  /* ---------- Support screen ---------- */
+  .support-list{padding:6px 24px 4px 24px;flex:1;overflow-y:auto;}
+  .support-empty{
+    text-align:center;color:var(--slate);font-size:12.5px;
+    padding:30px 10px;border:1px dashed var(--line);border-radius:12px;
+  }
+  .ticket-card{
+    background:#fff;border:1px solid var(--line);border-radius:12px;
+    padding:14px 15px;margin-bottom:12px;cursor:pointer;
+    transition:border-color 0.15s;
+  }
+  .ticket-card:active{border-color:var(--teal);}
+  .ticket-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+  .ticket-subject{font-size:13.5px;font-weight:600;color:var(--ink);}
+  .ticket-date{font-size:10.5px;color:var(--slate);margin-top:2px;}
+  .ticket-status{
+    font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:0.05em;
+    padding:3px 8px;border-radius:20px;white-space:nowrap;text-transform:uppercase;
+  }
+  .ticket-status.open{background:rgba(192,138,62,0.14);color:#96692B;}
+  .ticket-status.resolved{background:rgba(47,111,98,0.14);color:var(--teal);}
+  .ticket-msg{font-size:12.5px;color:var(--ink-soft);line-height:1.5;margin-top:8px;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .ticket-preview{font-size:11px;color:var(--slate);margin-top:4px;}
+  .support-compose{
+    padding:14px 24px 26px 24px;border-top:1px solid var(--line);background:var(--paper);
+  }
+  .support-compose .field{margin-bottom:12px;}
+  .support-compose textarea{
+    width:100%;border:1px solid var(--line);border-radius:10px;
+    padding:12px 13px;font-size:13.5px;font-family:'IBM Plex Sans',sans-serif;
+    color:var(--ink);resize:vertical;min-height:70px;
+  }
+  .support-compose textarea:focus{outline:2px solid var(--teal);outline-offset:1px;}
+
+  /* ---------- Chat screen ---------- */
+  #screen-chat{display:flex;flex-direction:column;padding:0;}
+  .chat-header{
+    display:flex;align-items:center;gap:12px;
+    padding:12px 16px;border-bottom:1px solid var(--line);background:var(--paper);
+    flex-shrink:0;
+  }
+  .chat-header-info{flex:1;min-width:0;}
+  .chat-header-title{font-weight:600;font-size:14px;color:var(--ink);
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .chat-header-sub{font-size:11px;color:var(--slate);margin-top:1px;}
+  .chat-messages{
+    flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;
+    background:var(--paper-dim);
+  }
+  .chat-bubble{
+    max-width:82%;padding:10px 14px;border-radius:16px;font-size:13px;line-height:1.5;
+    position:relative;
+  }
+  .chat-bubble.user{
+    align-self:flex-end;background:var(--teal);color:#fff;
+    border-bottom-right-radius:4px;
+  }
+  .chat-bubble.admin{
+    align-self:flex-start;background:#fff;color:var(--ink-soft);
+    border:1px solid var(--line);border-bottom-left-radius:4px;
+  }
+  .chat-bubble .cb-label{font-size:10px;font-weight:600;margin-bottom:3px;opacity:0.7;}
+  .chat-bubble .cb-time{font-size:9.5px;margin-top:4px;opacity:0.55;}
+  .chat-bubble.user .cb-time{text-align:right;}
+  .chat-date-divider{
+    text-align:center;font-size:10.5px;color:var(--slate);padding:4px 0;
+  }
+  .chat-input-bar{
+    display:flex;align-items:center;gap:8px;
+    padding:10px 14px;border-top:1px solid var(--line);background:var(--paper);flex-shrink:0;
+  }
+  .chat-input-bar input{
+    flex:1;border:1px solid var(--line);border-radius:20px;
+    padding:10px 14px;font-size:13px;font-family:'IBM Plex Sans',sans-serif;
+    color:var(--ink);outline:none;
+  }
+  .chat-input-bar input:focus{border-color:var(--teal);}
+  .chat-send-btn{
+    width:36px;height:36px;border-radius:50%;border:none;
+    background:var(--teal);color:#fff;font-size:16px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;
+    flex-shrink:0;
+  }
+  .chat-send-btn:disabled{opacity:0.4;}
+
+  /* ---------- Profile & Settings ---------- */
+  .section-label{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--slate);
+    margin-bottom:12px;
+  }
+  .settings-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:14px 0;
+    border-bottom:1px dashed var(--line);
+  }
+  .settings-row:last-child{border-bottom:none;}
+  .settings-info{flex:1;min-width:0;padding-right:16px;}
+  .settings-title{font-size:13.5px;font-weight:500;color:var(--ink);}
+  .settings-desc{font-size:11.5px;color:var(--slate);margin-top:2px;line-height:1.4;}
+
+  /* Toggle switch */
+  .toggle-switch{
+    position:relative;
+    display:inline-block;
+    width:44px;
+    height:24px;
+    flex-shrink:0;
+  }
+  .toggle-switch input{opacity:0;width:0;height:0;}
+  .toggle-slider{
+    position:absolute;
+    inset:0;
+    background:var(--line);
+    border-radius:24px;
+    cursor:pointer;
+    transition:background 0.25s;
+  }
+  .toggle-slider::before{
+    content:'';
+    position:absolute;
+    left:2px;
+    bottom:2px;
+    width:20px;
+    height:20px;
+    background:#fff;
+    border-radius:50%;
+    transition:transform 0.25s;
+    box-shadow:0 1px 3px rgba(0,0,0,0.2);
+  }
+  .toggle-switch input:checked + .toggle-slider{
+    background:var(--teal);
+  }
+  .toggle-switch input:checked + .toggle-slider::before{
+    transform:translateX(20px);
+  }
+
+  /* ---------- Success screen ---------- */
+  .success-check{
+    width:80px;height:80px;border-radius:50%;
+    background:var(--teal);
+    color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-size:36px;font-weight:700;
+    box-shadow:0 8px 24px -4px rgba(47,111,98,0.4);
+  }
+
+  /* ============================================================
+     DESKTOP LAYOUT (>= 768px)
+     ============================================================ */
+  @media(min-width:768px){
+    body{
+      background:var(--paper-dim);
+      flex-direction:row;
+    }
+    .phone{
+      margin-left:260px;
+      width:calc(100% - 260px);
+      height:100vh;
+      border-radius:0;
+      border:none;
+      box-shadow:none;
+    }
+    .screen{
+      transform:translateY(8px);
+    }
+    .screen.active{
+      transform:translateY(0);
+    }
+
+    /* Sidebar */
+    .desktop-sidebar{
+      display:flex;
+      flex-direction:column;
+      position:fixed;
+      top:0;left:0;bottom:0;
+      width:260px;
+      background:var(--ink);
+      color:var(--paper);
+      z-index:100;
+      padding:0;
+    }
+    .dsb-brand{
+      font-family:'Fraunces',serif;
+      font-weight:600;
+      font-size:18px;
+      padding:24px 24px 20px 24px;
+      border-bottom:1px solid rgba(245,243,238,0.1);
+      color:var(--paper);
+    }
+    .dsb-nav{
+      flex:1;
+      padding:12px 10px;
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+      overflow-y:auto;
+    }
+    .dsb-btn{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      width:100%;
+      background:none;
+      border:none;
+      border-radius:10px;
+      padding:12px 16px;
+      color:rgba(245,243,238,0.65);
+      font-size:14px;
+      font-weight:500;
+      text-align:left;
+      cursor:pointer;
+      transition:background 0.15s, color 0.15s;
+    }
+    .dsb-btn:hover{
+      background:rgba(245,243,238,0.08);
+      color:var(--paper);
+    }
+    .dsb-btn.active{
+      background:rgba(245,243,238,0.14);
+      color:var(--paper);
+    }
+    .dsb-divider{
+      height:1px;
+      background:rgba(245,243,238,0.1);
+      margin:8px 16px;
+    }
+    .dsb-icon{
+      font-size:16px;
+      width:20px;
+      text-align:center;
+      flex-shrink:0;
+    }
+    .dsb-footer{
+      padding:12px 10px 20px 10px;
+      border-top:1px solid rgba(245,243,238,0.1);
+    }
+    .dsb-logout{
+      color:rgba(245,243,238,0.45);
+    }
+    .dsb-auth{
+      flex:1;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      align-items:center;
+      padding:24px;
+      text-align:center;
+    }
+    .dsb-auth-text{
+      color:rgba(245,243,238,0.5);
+      font-size:13px;
+      line-height:1.6;
+      margin-bottom:28px;
+    }
+    .dsb-login-btn{
+      width:100%;
+      background:var(--brass);
+      color:var(--ink);
+      border:none;
+      border-radius:10px;
+      padding:13px;
+      font-weight:600;
+      font-size:14px;
+      cursor:pointer;
+      margin-bottom:10px;
+    }
+    .dsb-login-btn:hover{opacity:0.9;}
+    .dsb-register-btn{
+      width:100%;
+      background:transparent;
+      color:rgba(245,243,238,0.6);
+      border:1px solid rgba(245,243,238,0.2);
+      border-radius:10px;
+      padding:12px;
+      font-weight:500;
+      font-size:13px;
+      cursor:pointer;
+    }
+    .dsb-register-btn:hover{
+      border-color:rgba(245,243,238,0.4);
+      color:rgba(245,243,238,0.85);
+    }
+    /* Minimal sidebar: brand only, no nav/auth */
+    .desktop-sidebar.sidebar-minimal .dsb-auth,
+    .desktop-sidebar.sidebar-minimal .dsb-nav,
+    .desktop-sidebar.sidebar-minimal .dsb-footer{
+      display:none !important;
+    }
+
+    /* Hide mobile bottom nav on desktop */
+    .bottom-nav{
+      display:none !important;
+    }
+    .bottom-nav + div{
+      display:none;
+    }
+
+    /* Landing */
+    .landing-top{padding:44px 48px 0 48px;}
+    .landing-hero{padding:0 48px;margin-top:80px;}
+    .landing-hero h1{font-size:56px;max-width:480px;}
+    .landing-hero p{font-size:16px;max-width:420px;}
+    .ledger-strip{margin:48px 48px 0 48px;padding:20px 0;}
+    .ledger-strip .stat b{font-size:20px;}
+    .landing-actions{padding:40px 48px 60px 48px;}
+    .landing-actions .btn-primary,
+    .landing-actions .btn-ghost{max-width:320px;}
+
+    /* Auth */
+    .sub-nav{padding:24px 48px 0 48px;}
+    .sub-head{padding:28px 48px 8px 48px;}
+    .tab-row{margin:22px 48px 4px 48px;max-width:400px;}
+    .form-area{padding:20px 48px;max-width:480px;}
+    .sub-footer{padding:8px 48px 40px 48px;max-width:480px;}
+
+    /* Dashboard */
+    .dash-top{
+      padding:28px 32px 30px 32px;
+      border-radius:0 0 24px 24px;
+    }
+    .dash-top-row{gap:16px;}
+    .balance-amt{font-size:42px;}
+    .acct-meta{gap:24px;margin-top:16px;}
+    .quick-row{
+      padding:24px 32px 8px 32px;
+      max-width:600px;
+    }
+    .quick-btn{padding:14px 8px;font-size:12.5px;}
+    .ledger-rule{margin:20px 32px !important;}
+    .section-head{padding:24px 32px 12px 32px;}
+    .section-head h3{font-size:18px;}
+    .txn-list{padding:0 32px 30px 32px;}
+    .txn-row{padding:15px 0;}
+    .txn-icon{width:38px;height:38px;font-size:15px;}
+    .txn-name{font-size:14px;}
+    .txn-amt{font-size:14.5px;}
+    .profile-card{margin:0 32px 30px 32px;padding:22px;}
+    .profile-card-head .pc-name{font-size:16px;}
+    .profile-row{font-size:13.5px;padding:10px 0;}
+
+    /* Send / Request / Deposit */
+    .form-area{max-width:520px;}
+    .sub-footer{max-width:520px;}
+    .field input,.field select{padding:13px 14px;font-size:15px;}
+
+    /* Statement */
+    #screen-statement .form-area{max-width:700px;}
+    .txn-list{max-width:700px;}
+
+    /* Restricted */
+    .restricted-body{padding:0 40px;max-width:480px;}
+    .restricted-body h2{font-size:28px;}
+    .restricted-body p{font-size:14.5px;line-height:1.7;}
+
+    /* Support */
+    .support-list{padding:8px 32px 4px 32px;max-width:700px;}
+    .support-compose{padding:16px 32px 30px 32px;max-width:700px;}
+    .ticket-card{padding:18px 20px;}
+    .ticket-subject{font-size:14.5px;}
+
+    /* Chat */
+    #screen-chat .chat-header{padding:14px 24px;}
+    #screen-chat .chat-messages{padding:20px 32px;max-width:700px;margin:0 auto;}
+    #screen-chat .chat-input-bar{padding:12px 24px;max-width:700px;margin:0 auto;}
+    .ticket-msg{font-size:13.5px;}
+
+    /* Edit profile */
+    .edit-avatar-wrap{padding:20px 48px 6px 48px;}
+    .form-area{max-width:520px;}
+
+    /* Toast */
+    .toast{
+      position:fixed;
+      top:24px;
+      left:50%;
+      transform:translate(-50%,-14px);
+      font-size:14px;
+      padding:13px 24px;
+      border-radius:12px;
+      box-shadow:0 16px 32px -8px rgba(16,35,63,0.5);
+    }
+    .toast.show{transform:translate(-50%,0);}
+
+    /* Watermark */
+    .watermark-fab{display:none;}
+  }
+
+  /* ============================================================
+     LARGE DESKTOP (>= 1200px)
+     ============================================================ */
+  @media(min-width:1200px){
+    .phone{
+      margin-left:280px;
+      width:calc(100% - 280px);
+    }
+    .desktop-sidebar{width:280px;}
+    .landing-hero h1{font-size:64px;}
+    .balance-amt{font-size:48px;}
+    .quick-row{max-width:700px;}
+    .txn-list{max-width:800px;}
+    .support-list{max-width:800px;}
+    .support-compose{max-width:800px;}
+  }
+</style>
+</head>
+<body>
+
+<!-- Desktop sidebar navigation -->
+<div class="desktop-sidebar sidebar-minimal" id="desktop-sidebar">
+  <div class="dsb-brand" style="display:none;"></div>
+
+  <!-- Shown when NOT logged in — only on post-login screens without session -->
+  <div class="dsb-auth" id="dsb-auth-view" style="display:none;">
+    <div class="dsb-auth-text">Welcome to Bank of America online banking.</div>
+    <button class="dsb-login-btn" onclick="goAuth('login')">Log In</button>
+    <button class="dsb-register-btn" onclick="goAuth('register')">Open an Account</button>
+  </div>
+
+  <!-- Shown when logged in -->
+  <nav class="dsb-nav" id="dsb-nav-view" style="display:none;">
+    <button class="dsb-btn active" id="dsb-home" onclick="goScreen('dash')"><span class="dsb-icon">⌂</span>Home</button>
+    <button class="dsb-btn" id="dsb-transfer" onclick="routeSend()"><span class="dsb-icon">↔</span>Transfer</button>
+    <button class="dsb-btn" id="dsb-send" onclick="goScreen('send')" style="display:none;"><span class="dsb-icon">↑</span>Send Money</button>
+    <button class="dsb-btn" id="dsb-request" onclick="goScreen('request')" style="display:none;"><span class="dsb-icon">↓</span>Request Money</button>
+    <button class="dsb-btn" id="dsb-deposit" onclick="goScreen('deposit')" style="display:none;"><span class="dsb-icon">＋</span>Deposit</button>
+    <button class="dsb-btn" id="dsb-statements" onclick="goScreen('statement')"><span class="dsb-icon">≡</span>Statements</button>
+    <button class="dsb-btn" id="dsb-support" onclick="openSupport()"><span class="dsb-icon">🎧</span>Support</button>
+    <div class="dsb-divider"></div>
+    <button class="dsb-btn" id="dsb-profile" onclick="goScreen('profile-edit')"><span class="dsb-icon">👤</span>Profile &amp; Settings</button>
+  </nav>
+  <div class="dsb-footer" id="dsb-footer-view" style="display:none;">
+    <button class="dsb-btn dsb-logout" onclick="handleLogout()"><span class="dsb-icon">⎋</span>Log Out</button>
+  </div>
+</div>
+
+<div class="phone">
+
+  <div class="toast" id="toast"><span class="tdot">●</span><span id="toast-text"></span></div>
+
+  <!-- ============ LANDING ============ -->
+  <div class="screen active" id="screen-landing">
+    <div class="landing-top">
+      <div class="brand">Bank of America</div>
+    </div>
+    <div class="landing-hero">
+      <div class="eyebrow">Personal &amp; Everyday Banking</div>
+      <h1>Your money,<br>kept in plain<br>sight.</h1>
+      <p>Track balances, send transfers, and see every line of your statement — clearly, in one place.</p>
+    </div>
+    <div class="ledger-strip">
+      <div class="stat"><b>0.00%</b><span>Monthly Fees</span></div>
+      <div class="stat"><b>24/7</b><span>Live Support</span></div>
+      <div class="stat"><b>256-bit</b><span>Encryption</span></div>
+    </div>
+    <div class="landing-actions">
+      <button class="btn-primary" onclick="goAuth('register')">Open an Account</button>
+      <button class="btn-ghost" onclick="goAuth('login')">Log In</button>
+    </div>
+  </div>
+
+  <!-- ============ AUTH ============ -->
+  <div class="screen" id="screen-auth">
+    <div class="sub-nav">
+      <button class="back-btn" onclick="goScreen('landing')">&larr;</button>
+      <span class="eyebrow">Bank of America</span>
+    </div>
+    <div class="sub-head">
+      <h2 id="auth-title">Welcome back</h2>
+      <p id="auth-sub">Log in to view your account.</p>
+    </div>
+    <div class="tab-row">
+      <button class="tab-btn" id="tab-login" onclick="setAuthTab('login')">Log In</button>
+      <button class="tab-btn" id="tab-register" onclick="setAuthTab('register')">Register</button>
+    </div>
+    <div class="form-area">
+      <div class="field" id="field-name" style="display:none;">
+        <label>Full name</label>
+        <input type="text" id="in-name" placeholder="Full name">
+      </div>
+      <div class="field">
+        <label>Email address</label>
+        <input type="email" id="in-email" placeholder="you@example.com">
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="in-pass" placeholder="••••••••">
+
+        <button type="button" class="forgot-link" id="forgot-link" onclick="openForgotScreen()" style="display:none;">Forgot password?</button>
+      </div>
+      <div class="form-error" id="auth-error"></div>
+    </div>
+    <div class="sub-footer">
+      <button class="btn-primary dark" onclick="handleAuthSubmit()" id="auth-submit">Log In</button>
+
+    </div>
+  </div>
+
+  <!-- ============ FORGOT PASSWORD ============ -->
+  <div class="screen" id="screen-forgot">
+    <div class="sub-nav">
+      <button class="back-btn" onclick="goAuth('login')">&larr;</button>
+      <span class="eyebrow">Bank of America</span>
+    </div>
+    <div class="sub-head">
+      <h2 id="forgot-title">Reset your password</h2>
+      <p id="forgot-sub">Enter your email and we'll send a one-time code via Supabase.</p>
+    </div>
+
+    <div class="form-area" id="forgot-step-email">
+      <div class="field">
+        <label>Email address</label>
+        <input type="email" id="forgot-email" placeholder="you@example.com">
+      </div>
+      <div class="form-error" id="forgot-error"></div>
+    </div>
+    <div class="sub-footer" id="forgot-footer-email">
+      <button class="btn-primary dark" id="forgot-send-btn" onclick="handleSendResetCode()">Send Reset Code</button>
+    </div>
+
+    <div class="form-area" id="forgot-step-verify" style="display:none;">
+      <div class="field">
+        <label>6-digit code</label>
+        <input type="text" id="forgot-otp" placeholder="123456" inputmode="numeric" maxlength="6">
+        <div class="field-hint">Sent to <span id="forgot-email-display"></span>. Check spam if you don't see it.</div>
+      </div>
+      <div class="field">
+        <label>New password</label>
+        <input type="password" id="forgot-new-pass" placeholder="At least 6 characters">
+      </div>
+      <div class="field">
+        <label>Confirm new password</label>
+        <input type="password" id="forgot-confirm-pass" placeholder="Re-enter new password">
+      </div>
+      <div class="form-error" id="forgot-verify-error"></div>
+      <button type="button" class="forgot-link" onclick="handleSendResetCode(true)">Resend code</button>
+    </div>
+    <div class="sub-footer" id="forgot-footer-verify" style="display:none;">
+      <button class="btn-primary dark" id="forgot-reset-btn" onclick="handleVerifyResetCode()">Reset Password</button>
+    </div>
+  </div>
+
+  <!-- ============ DASHBOARD ============ -->
+  <div class="screen" id="screen-dash">
+    <div class="dash-top">
+      <div class="dash-top-row">
+        <div class="greet">
+          <div class="eyebrow">Good afternoon</div>
+          <h2 id="greet-name">Jordan Whitfield</h2>
+        </div>
+        <div class="header-actions">
+          <button class="support-fab" onclick="openSupport()" aria-label="Customer support">🎧</button>
+          <div class="avatar" id="greet-avatar">
+            <img id="greet-avatar-img" src="" alt="">
+            <span class="avatar-initials" id="greet-avatar-initials">JW</span>
+          </div>
+        </div>
+      </div>
+      <div class="balance-block">
+        <div class="eyebrow">Available Balance</div>
+        <div class="balance-amt" id="balance-amt">$873,092.76</div>
+        <div class="acct-meta">
+          <div><b>•••• 7842</b>Checking Account</div>
+          <div><b>Active</b>Account Status</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="quick-row">
+      <div class="quick-btn" onclick="routeSend()"><div class="qicon">↑</div>Send</div>
+      <div class="quick-btn" onclick="goScreen('request')"><div class="qicon">↓</div>Request</div>
+      <div class="quick-btn" onclick="goScreen('deposit')"><div class="qicon">＋</div>Deposit</div>
+      <div class="quick-btn" onclick="goScreen('statement')"><div class="qicon">≡</div>Statement</div>
+    </div>
+
+    <hr class="ledger-rule" style="margin:18px 24px;">
+
+    <div class="section-head"><h3>Recent Activity</h3><span onclick="goScreen('statement')">View all</span></div>
+    <div class="txn-list" id="txn-list-dash"></div>
+
+    <div style="height:70px;"></div>
+
+    <div class="bottom-nav">
+      <button class="nav-btn" id="nav-home" onclick="goScreen('dash')"><span class="ni">⌂</span>Home</button>
+      <button class="nav-btn" id="nav-transfer" onclick="routeSend()"><span class="ni">↔</span>Transfer</button>
+      <button class="nav-btn" id="nav-statements" onclick="goScreen('statement')"><span class="ni">≡</span>Statements</button>
+      <button class="nav-btn" id="nav-profile" onclick="goScreen('profile-edit')"><span class="ni">👤</span>Profile</button>
+      <button class="nav-btn" id="nav-logout" onclick="handleLogout()"><span class="ni">⎋</span>Log Out</button>
+    </div>
+  </div>
+
+  <!-- ============ SEND ============ -->
+  <div class="screen" id="screen-send">
+    <div class="sub-nav">
+      <button class="back-btn" onclick="goScreen('dash')">&larr;</button>
+      <span class="eyebrow">Transfer</span>
+    </div>
+    <div class="sub-head">
+      <h2>Send money</h2>
+      <p>Transfers post instantly.</p>
+    </div>
+    <div class="form-area">
+      <div class="field">
+        <label>Account Number</label>
+        <input type="text" id="send-acct" placeholder="Enter account number" maxlength="13" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+      </div>
+      <div class="field">
+        <label>Select Bank</label>
+        <select id="send-bank" onchange="onSendBankChange()">
+          <option value="">Choose a bank...</option>
+          <option value="Bank of America">Bank of America</option>
+          <option value="JPMorgan Chase">JPMorgan Chase</option>
+          <option value="Wells Fargo">Wells Fargo</option>
+          <option value="Citibank">Citibank</option>
+          <option value="U.S. Bank">U.S. Bank</option>
+          <option value="PNC Bank">PNC Bank</option>
+          <option value="Capital One">Capital One</option>
+          <option value="TD Bank">TD Bank</option>
+          <option value="BB&T (Truist)">BB&T (Truist)</option>
+          <option value="SunTrust (Truist)">SunTrust (Truist)</option>
+          <option value="USAA">USAA</option>
+          <option value="Charles Schwab">Charles Schwab</option>
+          <option value="Goldman Sachs">Goldman Sachs</option>
+          <option value="Morgan Stanley">Morgan Stanley</option>
+          <option value="Ally Bank">Ally Bank</option>
+          <option value="Discover Bank">Discover Bank</option>
+          <option value="American Express">American Express</option>
+          <option value="Navy Federal Credit Union">Navy Federal Credit Union</option>
+          <option value="Regions Bank">Regions Bank</option>
+          <option value="Fifth Third Bank">Fifth Third Bank</option>
+          <option value="KeyBank">KeyBank</option>
+          <option value="M&T Bank">M&T Bank</option>
+          <option value="Huntington Bank">Huntington Bank</option>
+          <option value="Citizens Bank">Citizens Bank</option>
+          <option value="BMO Harris">BMO Harris</option>
+        </select>
+      </div>
+      <div class="field" id="send-name-field" style="display:none;">
+        <label>Recipient Name</label>
+        <input type="text" id="send-name" placeholder="Auto-populated after bank selection" readonly style="background:#f5f5f5;cursor:not-allowed;">
+      </div>
+      <div class="field">
+        <label>Amount (USD)</label>
+        <input type="number" id="send-amt" placeholder="0.00" step="0.01" min="0">
+      </div>
+      <div class="field">
+        <label>Note (optional)</label>
+        <input type="text" id="send-note" placeholder="What's this for?">
+      </div>
+      <div class="form-error" id="send-error"></div>
+    </div>
+    <div class="sub-footer">
+      <button class="btn-primary dark" onclick="handleSend()">Send Money</button>
+    </div>
+  </div>
+
+  <!-- ============ SEND SUCCESS ============ -->
+  <div class="screen" id="screen-send-success">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 30px;text-align:center;">
+      <div class="success-check">✓</div>
+      <h2 style="font-family:'Fraunces',serif;font-size:24px;font-weight:600;margin:20px 0 8px 0;">Transfer Successful</h2>
+      <p id="send-success-msg" style="color:var(--slate);font-size:14px;line-height:1.6;margin:0 0 24px 0;"></p>
+      <div class="profile-card" style="width:100%;max-width:360px;margin:0 0 30px 0;">
+        <div class="profile-row"><span>Bank</span><span id="success-bank" style="font-weight:600;"></span></div>
+        <div class="profile-row"><span>Account</span><span id="success-acct"></span></div>
+        <div class="profile-row"><span>Recipient</span><span id="success-name" style="font-weight:600;"></span></div>
+        <div class="profile-row"><span>Amount</span><span id="success-amt" style="color:var(--teal);font-weight:600;"></span></div>
+      </div>
+      <button class="btn-primary dark" onclick="goScreen('dash')" style="width:100%;max-width:360px;">Back to Home</button>
+    </div>
+  </div>
+
+  <!-- ============ RESTRICTED ============ -->
+  <div class="screen" id="screen-restricted">
+    <div class="restricted-body">
+      <div class="restricted-icon">🔒</div>
+      <div class="eyebrow">Account Restricted</div>
+      <h2>Transfers are paused</h2>
+      <p>Sending money is temporarily unavailable on this account. Please contact support for assistance.</p>
+      <div class="restricted-ref" id="restricted-ref">REF: RESTRICT-07842</div>
+      <div class="restricted-actions">
+        <button class="btn-primary dark" onclick="openSupportFromRestriction()">Contact Support</button>
+        <button class="btn-ghost" onclick="goScreen('dash')">Back to Home</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ REQUEST ============ -->
+  <div class="screen" id="screen-request">
+    <div class="sub-nav">
+      <button class="back-btn" onclick="goScreen('dash')">&larr;</button>
+      <span class="eyebrow">Transfer</span>
+    </div>
+    <div class="sub-head">
+      <h2>Request money</h2>
+      <p>Send a request — no funds move until it's accepted.</p>
+    </div>
+    <div class="form-area">
+      <div class="field">
+        <label>Request from</label>
+        <input type="text" id="req-name" placeholder="Request from">
+      </div>
+      <div class="field">
+        <label>Amount (USD)</label>
+        <input type="number" id="req-amt" placeholder="0.00" step="0.01" min="0">
+      </div>
+      <div class="field">
+        <label>Note (optional)</label>
+        <input type="text" id="req-note" placeholder="What's this for?">
+      </div>
+      <div class="form-error" id="req-error"></div>
+    </div>
+    <div class="sub-footer">
+      <button class="btn-primary dark" onclick="handleRequest()">Send Request</button>
+    </div>
+  </div>
+
+  <!-- ============ DEPOSIT ============ -->
+  <div class="screen" id="screen-deposit">
+    <div class="sub-nav">
+      <button class="back-btn" onclick="goScreen('dash')">&larr;</button>
+      <span class="eyebrow">Transfer</span>
+    </div>
+    <div class="sub-head">
+      <h2>Deposit funds</h2>
+      <p>Add funds to your checking account.</p>
+    </div>
+    <div class="form-area">
+      <div class="field">
+        <label>Source</label>
+        <select id="dep-source">
+          <option>External account •••• 9034</option>
+          <option>Mobile check deposit</option>
+          <option>Linked savings •••• 2217</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Amount (USD)</label>
+        <input type="number" id="dep-amt" placeholder="0.00" step="0.01" min="0">
+      </div>
+      <div class="form-error" id="dep-error"></div>
+    </div>
+    <div class="sub-footer">
+      <button class="btn-primary dark" onclick="handleDeposit()">Deposit</button>
+    </div>
+  </div>
+
+  <!-- ============ STATEMENT ============ -->
+  <div class="screen" id="screen-statement">
+    <div class="sub-nav">
+      <button class="back-btn" onclick="goScreen('dash')">&larr;</button>
+      <span class="eyebrow">Statement</span>
+    </div>
+    <div class="sub-head">
+      <h2>All transactions</h2>
+      <p>Full activity for Checking •••• 7842.</p>
+    </div>
+    <div class="txn-list" id="txn-list-full" style="padding-top:4px;"></div>
+    <div style="height:20px;"></div>
+  </div>
+
+  <!-- ============ PROFILE & SETTINGS ============ -->
+  <div class="screen" id="screen-profile-edit">
+    <div class="sub-nav">
+      <button class="back-btn" onclick="goScreen('dash')">&larr;</button>
+      <span class="eyebrow">Profile &amp; Settings</span>
+    </div>
+    <div class="sub-head">
+      <h2>Your Profile</h2>
+      <p>Manage your account details and preferences.</p>
+    </div>
+
+    <!-- Photo section -->
+    <div class="edit-avatar-wrap">
+      <div class="edit-avatar-circle" id="edit-avatar-circle">
+        <img id="edit-avatar-img" src="" alt="">
+        <span class="avatar-initials" id="edit-avatar-initials">U</span>
+      </div>
+      <label class="photo-btn" for="edit-photo-input">Upload Photo</label>
+      <input type="file" id="edit-photo-input" accept="image/*" style="display:none;" onchange="previewSelectedPhoto(event)">
+      <div class="photo-hint">JPG or PNG, up to 5MB.</div>
+    </div>
+
+    <!-- Personal info -->
+    <div class="form-area" style="padding-top:8px;">
+      <div class="section-label">Personal Information</div>
+      <div class="field">
+        <label>Full name</label>
+        <input type="text" id="edit-name" placeholder="Your full name">
+      </div>
+      <div class="field">
+        <label>Email address</label>
+        <input type="email" id="edit-email" placeholder="you@example.com" disabled style="opacity:0.6;cursor:not-allowed;">
+        <div class="field-hint">Contact support to change your email.</div>
+      </div>
+      <div class="form-error" id="edit-error"></div>
+      <button class="btn-primary dark" id="edit-save-btn" onclick="saveProfile()" style="margin-top:4px;">Save Changes</button>
+    </div>
+
+    <hr class="ledger-rule" style="margin:18px 26px;">
+
+    <!-- Account details -->
+    <div class="form-area" style="padding-top:0;">
+      <div class="section-label">Account Details</div>
+      <div class="profile-card" style="margin:0;border:none;padding:0;">
+        <div class="profile-row"><span>Account number</span><span>•••• •••• 7842</span></div>
+        <div class="profile-row"><span>Account type</span><span>Checking</span></div>
+        <div class="profile-row"><span>Member since</span><span>2021</span></div>
+        <div class="profile-row"><span>Status</span><span style="color:var(--teal);font-weight:600;">Active</span></div>
+      </div>
+    </div>
+
+    <hr class="ledger-rule" style="margin:18px 26px;">
+
+    <!-- Settings -->
+    <div class="form-area" style="padding-top:0;">
+      <div class="section-label">Settings</div>
+      <div class="settings-row">
+        <div class="settings-info">
+          <div class="settings-title">Push Notifications</div>
+          <div class="settings-desc">Receive alerts for transactions and updates.</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" checked id="toggle-notifications">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="settings-row">
+        <div class="settings-info">
+          <div class="settings-title">Two-Factor Authentication</div>
+          <div class="settings-desc">Add an extra layer of security to your account.</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="toggle-2fa">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="settings-row">
+        <div class="settings-info">
+          <div class="settings-title">Paperless Statements</div>
+          <div class="settings-desc">Go green — receive statements digitally.</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" checked id="toggle-paperless">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="settings-row">
+        <div class="settings-info">
+          <div class="settings-title">Login Alerts</div>
+          <div class="settings-desc">Get notified of new sign-ins to your account.</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" checked id="toggle-login-alerts">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <hr class="ledger-rule" style="margin:18px 26px;">
+
+    <!-- Danger zone -->
+    <div class="form-area" style="padding-top:0;padding-bottom:30px;">
+      <div class="section-label" style="color:var(--neg);">Danger Zone</div>
+      <button class="btn-ghost" style="color:var(--neg);border-color:rgba(179,73,43,0.3);width:100%;" onclick="showToast('请联系客服关闭账户')">Close Account</button>
+    </div>
+  </div>
+
+  <!-- ============ SUPPORT ============ -->
+  <div class="screen" id="screen-support">
+    <div class="sub-nav">
+      <button class="back-btn" onclick="goScreen(supportBackTarget)">&larr;</button>
+      <span class="eyebrow">Support</span>
+    </div>
+    <div class="sub-head">
+      <h2>Customer support</h2>
+      <p>Tap a conversation to open it, or start a new one below.</p>
+    </div>
+    <div class="support-list" id="support-list">
+      <div class="support-empty">Loading your messages…</div>
+    </div>
+    <div class="support-compose">
+      <div class="field">
+        <label>Subject</label>
+        <input type="text" id="support-subject" placeholder="e.g. Card not working">
+      </div>
+      <div class="field">
+        <label>Message</label>
+        <textarea id="support-message" placeholder="Tell us what's going on…"></textarea>
+      </div>
+      <div class="form-error" id="support-error"></div>
+      <button class="btn-primary dark" id="support-submit-btn" onclick="submitComplaint()">Send to Support</button>
+    </div>
+  </div>
+
+  <!-- ============ CHAT ============ -->
+  <div class="screen" id="screen-chat">
+    <div class="chat-header">
+      <button class="back-btn" onclick="goScreen('support')">&larr;</button>
+      <div class="chat-header-info">
+        <div class="chat-header-title" id="chat-title">Support</div>
+        <div class="chat-header-sub" id="chat-sub"></div>
+      </div>
+    </div>
+    <div class="chat-messages" id="chat-messages"></div>
+    <div class="chat-input-bar">
+      <input type="text" id="chat-input" placeholder="Type a message…" onkeydown="if(event.key==='Enter')sendChatMsg()">
+      <button class="chat-send-btn" onclick="sendChatMsg()">↑</button>
+    </div>
+  </div>
+
+</div>
+
+<script src="supabase.min.js"></script>
+<script>
+  if(!window.supabase){ document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>'); }
+</script>
+<script>
+  // Load from .env via build step or config. For static hosting, values are inlined below.
+  var config = {
+    SUPABASE_URL: "https://noafkwgspyenzxjwyhzz.supabase.co",
+    SUPABASE_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5vYWZrd2dzcHllbnp4and5aHp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQwNzMyNjIsImV4cCI6MjA5OTY0OTI2Mn0.NR30ZT54XiIYjY6s-uuZaTiMD8Jph511N0AMq4r_6XE"
+  };
+  var supabaseClient = window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_KEY, {
+    auth: { storageKey: 'boa-customer-auth' }
+  });
+
+  async function sbInsertTicket(data){
+    var { data: row, error } = await supabaseClient
+      .from('support_tickets')
+      .insert({ user_id: data.user_id, email: data.email, subject: data.subject, message: data.message })
+      .select()
+      .single();
+    if(error) throw error;
+    return row;
+  }
+
+  async function sbSelectTickets(userId){
+    var { data, error } = await supabaseClient
+      .from('support_tickets')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+    if(error) throw error;
+    return data || [];
+  }
+
+  async function sbUpdateTicket(id, updates){
+    var { error } = await supabaseClient
+      .from('support_tickets')
+      .update(updates)
+      .eq('id', id);
+    if(error) throw error;
+  }
+</script>
+<script>
+  var state = {
+    balance: 873092.76,
+    transactions: [
+      {icon:'💼', name:'Apex Corp — Salary', date:'Jul 22 · Direct deposit', amt:12450.00},
+      {icon:'📈', name:'Vanguard Dividend', date:'Jul 20 · Investment income', amt:2847.50},
+      {icon:'🏠', name:'Mortgage Payment', date:'Jul 18 · Autopay', amt:-2850.00},
+      {icon:'🛒', name:'Whole Foods Market', date:'Jul 17 · Card purchase', amt:-234.56},
+      {icon:'💻', name:'Freelance — Meridian LLC', date:'Jul 15 · Wire transfer', amt:4500.00},
+      {icon:'⚡', name:'Pacific Gas & Electric', date:'Jul 14 · Autopay', amt:-167.30},
+      {icon:'↔', name:'Transfer from Savings', date:'Jul 12 · Internal', amt:8000.00},
+      {icon:'🚗', name:'Tesla Lease Payment', date:'Jul 11 · Auto payment', amt:-485.00},
+      {icon:'🍽️', name:'Nobu Restaurant', date:'Jul 10 · Card purchase', amt:-189.40},
+      {icon:'📋', name:'IRS Tax Refund', date:'Jul 8 · Government deposit', amt:3625.00},
+      {icon:'🔒', name:'State Farm Insurance', date:'Jul 6 · Premium', amt:-312.00},
+      {icon:'📦', name:'Amazon Purchase', date:'Jul 5 · Card purchase', amt:-156.78},
+      {icon:'⛽', name:'Chevron Gas Station', date:'Jul 4 · Card purchase', amt:-52.30},
+      {icon:'💼', name:'Client Payment — Orion Tech', date:'Jul 2 · Wire transfer', amt:6750.00},
+      {icon:'🏥', name:'Medical Copay', date:'Jul 1 · Card payment', amt:-45.00},
+      {icon:'↔', name:'Transfer to Investment', date:'Jun 28 · Internal', amt:-5000.00},
+      {icon:'🏠', name:'Rental Income — Unit 4B', date:'Jun 25 · Deposit', amt:2100.00},
+      {icon:'📞', name:'AT&T Wireless', date:'Jun 23 · Autopay', amt:-142.00},
+      {icon:'🛒', name:'Costco Wholesale', date:'Jun 20 · Card purchase', amt:-318.74},
+      {icon:'💼', name:'Apex Corp — Salary', date:'Jun 15 · Direct deposit', amt:12450.00}
+    ]
+  };
+  var DEFAULT_STATE = JSON.parse(JSON.stringify(state));
+
+  function fmtSigned(n){
+    var sign = n < 0 ? '-' : '+';
+    return sign + '$' + Math.abs(n).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+  }
+  function fmtBalance(n){
+    return '$' + n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+  }
+
+  function renderBalance(){
+    document.getElementById('balance-amt').textContent = fmtBalance(state.balance);
+  }
+
+  function txnRowHTML(t){
+    return '<div class="txn-row">' +
+      '<div class="txn-left"><div class="txn-icon">' + t.icon + '</div>' +
+      '<div><div class="txn-name">' + t.name + '</div><div class="txn-date">' + t.date + '</div></div></div>' +
+      '<div class="txn-amt ' + (t.amt < 0 ? 'neg' : 'pos') + '">' + fmtSigned(t.amt) + '</div>' +
+      '</div>';
+  }
+
+  function renderTxns(){
+    var dashHTML = state.transactions.slice(0, 5).map(txnRowHTML).join('');
+    document.getElementById('txn-list-dash').innerHTML = dashHTML;
+    var fullHTML = state.transactions.map(txnRowHTML).join('');
+    document.getElementById('txn-list-full').innerHTML = fullHTML;
+  }
+
+  function goScreen(id){
+    document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+    document.getElementById('screen-' + id).classList.add('active');
+    updateNav(id);
+    // Manage sidebar: hide on landing/auth, show nav on post-login screens
+    var noSidebar = (id === 'landing' || id === 'auth' || id === 'forgot');
+    var sidebar = document.getElementById('desktop-sidebar');
+    if(sidebar){
+      sidebar.classList.toggle('sidebar-minimal', noSidebar);
+      if(!noSidebar){
+        updateSidebarView(!!currentUser);
+      }
+    }
+  }
+
+  function updateNav(id){
+    var map = {dash:'nav-home', send:'nav-transfer', restricted:'nav-transfer', statement:'nav-statements', 'profile-edit':'nav-profile', support:'nav-transfer', chat:'nav-transfer'};
+    ['nav-home','nav-transfer','nav-statements','nav-profile','nav-logout'].forEach(function(navId){
+      var el = document.getElementById(navId);
+      if(el) el.classList.remove('active');
+    });
+    if(map[id]) document.getElementById(map[id]).classList.add('active');
+
+    // Desktop sidebar
+    var dsbMap = {dash:'dsb-home', send:'dsb-transfer', restricted:'dsb-transfer', statement:'dsb-statements', request:'dsb-transfer', deposit:'dsb-transfer', 'profile-edit':'dsb-profile', support:'dsb-support', chat:'dsb-support', auth:'dsb-home', forgot:'dsb-home', landing:'dsb-home'};
+    ['dsb-home','dsb-transfer','dsb-send','dsb-request','dsb-deposit','dsb-statements','dsb-support','dsb-profile'].forEach(function(dsbId){
+      var el = document.getElementById(dsbId);
+      if(el) el.classList.remove('active');
+    });
+    if(dsbMap[id]){
+      var el = document.getElementById(dsbMap[id]);
+      if(el) el.classList.add('active');
+    }
+    // Show/hide sub-buttons in sidebar
+    var showTransfer = (id === 'send' || id === 'request' || id === 'deposit');
+    var sendEl = document.getElementById('dsb-send');
+    var reqEl = document.getElementById('dsb-request');
+    var depEl = document.getElementById('dsb-deposit');
+    if(sendEl) sendEl.style.display = showTransfer ? 'flex' : 'none';
+    if(reqEl) reqEl.style.display = showTransfer ? 'flex' : 'none';
+    if(depEl) depEl.style.display = showTransfer ? 'flex' : 'none';
+  }
+
+  function goAuth(mode){
+    goScreen('auth');
+    setAuthTab(mode);
+  }
+  function setAuthTab(mode){
+    document.getElementById('tab-login').classList.toggle('active', mode === 'login');
+    document.getElementById('tab-register').classList.toggle('active', mode === 'register');
+    document.getElementById('field-name').style.display = mode === 'register' ? 'block' : 'none';
+    document.getElementById('auth-title').textContent = mode === 'login' ? 'Welcome back' : 'Create your account';
+    document.getElementById('auth-sub').textContent = mode === 'login' ? 'Log in to view your account.' : 'Set up your account in seconds.';
+    document.getElementById('auth-submit').textContent = mode === 'login' ? 'Log In' : 'Create Account';
+    document.getElementById('auth-submit').dataset.mode = mode;
+    document.getElementById('forgot-link').style.display = mode === 'login' ? 'inline-block' : 'none';
+  }
+  var currentUser = null;
+
+  function applyAvatar(imgId, initialsId, url, initials){
+    var img = document.getElementById(imgId);
+    var span = document.getElementById(initialsId);
+    if(url){
+      img.src = url;
+      img.classList.add('show');
+      span.style.display = 'none';
+    } else {
+      img.classList.remove('show');
+      img.src = '';
+      span.style.display = '';
+      span.textContent = initials || 'JW';
+    }
+  }
+
+  var supportChannel = null;
+
+  function setSessionUI(user){
+    currentUser = user;
+    var email = user && user.email ? user.email : '';
+    var meta = (user && user.user_metadata) || {};
+    var name = meta.full_name || '';
+    var avatarUrl = meta.avatar_url || '';
+    var initials = name ? name.split(' ').map(function(p){ return p[0]; }).filter(Boolean).slice(0,2).join('').toUpperCase() : '?';
+
+    document.getElementById('greet-name').textContent = name || 'Welcome';
+
+    applyAvatar('greet-avatar-img', 'greet-avatar-initials', avatarUrl, initials);
+    updateSidebarView(true);
+    restorePersistedTransactions();
+
+    if(supportChannel){ supabaseClient.removeChannel(supportChannel); supportChannel = null; }
+    if(user && user.id){
+      supportChannel = supabaseClient
+        .channel('support-tickets-' + user.id)
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'support_tickets',
+          filter: 'user_id=eq.' + user.id
+        }, function(payload){
+          loadSupportTickets();
+          if(payload.eventType === 'UPDATE' && payload.new && payload.new.status === 'resolved'){
+            showToast('Support replied to your ticket');
+          }
+        })
+        .subscribe();
+    }
+  }
+
+  function restorePersistedTransactions(){
+    if(!currentUser || !currentUser.user_metadata) return;
+    var saved = currentUser.user_metadata.persisted_transactions;
+    if(!saved || !saved.length) return;
+    var existing = state.transactions.filter(function(t){ return t._userPersisted; });
+    if(existing.length > 0) return;
+    saved.forEach(function(t){
+      state.transactions.unshift({icon:t.icon, name:t.name, date:t.date, amt:t.amt, _userPersisted:true});
+    });
+    renderBalance();
+    renderTxns();
+  }
+
+  function updateSidebarView(loggedIn){
+    var authView = document.getElementById('dsb-auth-view');
+    var navView = document.getElementById('dsb-nav-view');
+    var footerView = document.getElementById('dsb-footer-view');
+    if(authView) authView.style.display = 'none';
+    if(navView) navView.style.display = loggedIn ? 'flex' : 'none';
+    if(footerView) footerView.style.display = loggedIn ? 'block' : 'none';
+  }
+
+  function getTransferCount(){
+    if(!currentUser || !currentUser.user_metadata) return 0;
+    return currentUser.user_metadata.transfer_count || 0;
+  }
+
+  async function bumpTransferCount(){
+    if(!currentUser) return;
+    var newCount = getTransferCount() + 1;
+    var meta = Object.assign({}, currentUser.user_metadata, { transfer_count: newCount, last_transfer_at: new Date().toISOString() });
+    // Persist the first transfer transaction so it survives logout
+    var savedTxns = currentUser.user_metadata && currentUser.user_metadata.persisted_transactions
+      ? currentUser.user_metadata.persisted_transactions : [];
+    if(newCount === 1 && state.transactions.length > 0){
+      var firstTxn = state.transactions.find(function(t){ return t._userPersisted === undefined; });
+      if(!firstTxn) firstTxn = state.transactions[0];
+      var txnToSave = {icon:firstTxn.icon, name:firstTxn.name, date:firstTxn.date, amt:firstTxn.amt};
+      meta.persisted_transactions = [txnToSave];
+    } else if(savedTxns.length > 0){
+      meta.persisted_transactions = savedTxns;
+    }
+    try {
+      var res = await supabaseClient.auth.updateUser({ data: meta });
+      if(!res.error && res.data.user){
+        currentUser = res.data.user;
+      } else if(currentUser.user_metadata){
+        currentUser.user_metadata.transfer_count = newCount;
+        currentUser.user_metadata.last_transfer_at = meta.last_transfer_at;
+        if(meta.persisted_transactions) currentUser.user_metadata.persisted_transactions = meta.persisted_transactions;
+      }
+    } catch(err){
+      if(currentUser.user_metadata){
+        currentUser.user_metadata.transfer_count = newCount;
+        currentUser.user_metadata.last_transfer_at = meta.last_transfer_at;
+        if(meta.persisted_transactions) currentUser.user_metadata.persisted_transactions = meta.persisted_transactions;
+      }
+      console.error('Bank of America: could not persist transfer count', err);
+    }
+  }
+
+  function isUserRestricted(){
+    if(!currentUser || !currentUser.user_metadata) return false;
+    var lastAt = currentUser.user_metadata.last_transfer_at;
+    if(!lastAt) return false;
+    var elapsed = Date.now() - new Date(lastAt).getTime();
+    return elapsed < 48 * 60 * 60 * 1000;
+  }
+
+  function routeSend(){
+    if(!currentUser){
+      goAuth('login');
+      return;
+    }
+    if(isUserRestricted()){
+      showRestrictedScreen();
+      return;
+    }
+    goScreen('send');
+  }
+
+  function showRestrictedScreen(){
+    var refEl = document.getElementById('restricted-ref');
+    if(refEl && currentUser){
+      var uid = currentUser.id || '';
+      var suffix = uid.replace(/-/g, '').slice(-5).toUpperCase();
+      refEl.textContent = 'REF: RESTRICT-' + suffix;
+    }
+    goScreen('restricted');
+  }
+
+  function openProfileEdit(){
+    var meta = (currentUser && currentUser.user_metadata) || {};
+    var name = meta.full_name || '';
+    var email = currentUser && currentUser.email ? currentUser.email : '';
+    var avatarUrl = meta.avatar_url || '';
+    var initials = name ? name.split(' ').map(function(p){ return p[0]; }).filter(Boolean).slice(0,2).join('').toUpperCase() : '?';
+    document.getElementById('edit-name').value = name;
+    document.getElementById('edit-email').value = email;
+    document.getElementById('edit-error').style.display = 'none';
+    document.getElementById('edit-photo-input').value = '';
+    applyAvatar('edit-avatar-img', 'edit-avatar-initials', avatarUrl, initials);
+    goScreen('profile-edit');
+  }
+
+  var selectedPhotoFile = null;
+
+  function previewSelectedPhoto(event){
+    var file = event.target.files && event.target.files[0];
+    var errEl = document.getElementById('edit-error');
+    errEl.style.display = 'none';
+    if(!file) return;
+    if(!file.type.startsWith('image/')){
+      errEl.textContent = 'Please choose an image file.';
+      errEl.style.display = 'block';
+      return;
+    }
+    if(file.size > 5 * 1024 * 1024){
+      errEl.textContent = 'Image must be under 5MB.';
+      errEl.style.display = 'block';
+      return;
+    }
+    selectedPhotoFile = file;
+    var localUrl = URL.createObjectURL(file);
+    var img = document.getElementById('edit-avatar-img');
+    var span = document.getElementById('edit-avatar-initials');
+    img.src = localUrl;
+    img.classList.add('show');
+    span.style.display = 'none';
+  }
+
+  async function saveProfile(){
+    var errEl = document.getElementById('edit-error');
+    var btn = document.getElementById('edit-save-btn');
+    var name = document.getElementById('edit-name').value.trim();
+    errEl.style.display = 'none';
+
+    if(!currentUser){
+      errEl.textContent = 'You need to be logged in to edit your profile.';
+      errEl.style.display = 'block';
+      return;
+    }
+    if(!name){
+      errEl.textContent = 'Enter a display name.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    btn.textContent = 'Saving\u2026';
+    var avatarUrl = (currentUser.user_metadata && currentUser.user_metadata.avatar_url) || '';
+
+    try {
+      if(selectedPhotoFile){
+        avatarUrl = await readFileAsDataURL(selectedPhotoFile);
+      }
+
+      var updateRes = await supabaseClient.auth.updateUser({
+        data: { full_name: name, avatar_url: avatarUrl }
+      });
+      if(updateRes.error) throw updateRes.error;
+
+      setSessionUI(updateRes.data.user);
+      selectedPhotoFile = null;
+      showToast('Profile updated');
+      goScreen('dash');
+    } catch(err){
+      errEl.textContent = err.message || 'Could not save your profile.';
+      errEl.style.display = 'block';
+    } finally {
+      btn.textContent = 'Save Changes';
+    }
+  }
+
+  function readFileAsDataURL(file){
+    return new Promise(function(resolve, reject){
+      var reader = new FileReader();
+      reader.onload = function(){ resolve(reader.result); };
+      reader.onerror = function(){ reject(new Error('Failed to read file.')); };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function escapeHTML(str){
+    var div = document.createElement('div');
+    div.textContent = str == null ? '' : str;
+    return div.innerHTML;
+  }
+
+  function getThread(t){
+    if(!t.response) return [];
+    try {
+      var parsed = JSON.parse(t.response);
+      if(Array.isArray(parsed)) return parsed;
+    } catch(e){}
+    return [{sender:'admin', text:t.response, time:t.created_at}];
+  }
+
+  function threadMsgHTML(m){
+    var isUser = m.sender === 'user';
+    var timeStr = m.time ? new Date(m.time).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}) : '';
+    return '<div class="thread-msg ' + (isUser ? 'user' : 'admin') + '">' +
+      '<div class="thread-label ' + (isUser ? 'user' : 'admin') + '">' + (isUser ? 'You' : 'Support team') + '</div>' +
+      '<div>' + escapeHTML(m.text) + '</div>' +
+      '<div class="thread-time">' + timeStr + '</div>' +
+      '</div>';
+  }
+
+  function ticketCardHTML(t){
+    var isResolved = t.status === 'resolved';
+    var dateStr = new Date(t.created_at).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+    var thread = getThread(t);
+    var replyCount = thread.length;
+    return '<div class="ticket-card" onclick="openChat(\'' + t.id.replace(/'/g,"\\'") + '\')">' +
+      '<div class="ticket-top">' +
+        '<div><div class="ticket-subject">' + escapeHTML(t.subject) + '</div><div class="ticket-date">' + dateStr + '</div></div>' +
+        '<span class="ticket-status ' + (isResolved ? 'resolved' : 'open') + '">' + (isResolved ? 'Resolved' : 'Open') + '</span>' +
+      '</div>' +
+      '<div class="ticket-msg">' + escapeHTML(t.message) + '</div>' +
+      (replyCount > 0 ? '<div class="ticket-preview">' + replyCount + ' repl' + (replyCount === 1 ? 'y' : 'ies') + '</div>' : '') +
+      '</div>';
+  }
+
+  var activeChatTicket = null;
+
+  var openChatTickets = [];
+
+  function openChat(ticketId){
+    var ticket = openChatTickets.find(function(t){ return t.id === ticketId; });
+    if(!ticket){
+      showToast('Ticket not found');
+      return;
+    }
+    activeChatTicket = ticket;
+    document.getElementById('chat-title').textContent = activeChatTicket.subject || 'Support';
+    document.getElementById('chat-sub').textContent = activeChatTicket.status === 'resolved' ? 'Resolved' : 'Open';
+    renderChatMessages();
+    goScreen('chat');
+    setTimeout(function(){
+      var cm = document.getElementById('chat-messages');
+      cm.scrollTop = cm.scrollHeight;
+    }, 50);
+  }
+
+  function renderChatMessages(){
+    if(!activeChatTicket) return;
+    var el = document.getElementById('chat-messages');
+    var thread = getThread(activeChatTicket);
+    var html = '<div class="chat-date-divider">' +
+      new Date(activeChatTicket.created_at).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}) +
+      '</div>';
+    html += '<div class="chat-bubble admin">' +
+      '<div class="cb-label">Customer message</div>' +
+      escapeHTML(activeChatTicket.message) +
+      '<div class="cb-time">' + new Date(activeChatTicket.created_at).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}) + '</div>' +
+      '</div>';
+    thread.forEach(function(m){
+      var isUser = m.sender === 'user';
+      var timeStr = m.time ? new Date(m.time).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}) : '';
+      html += '<div class="chat-bubble ' + (isUser ? 'user' : 'admin') + '">' +
+        '<div class="cb-label">' + (isUser ? 'You' : 'Support team') + '</div>' +
+        escapeHTML(m.text) +
+        '<div class="cb-time">' + timeStr + '</div>' +
+        '</div>';
+    });
+    el.innerHTML = html;
+  }
+
+  async function sendChatMsg(){
+    var input = document.getElementById('chat-input');
+    var text = input.value.trim();
+    if(!text || !activeChatTicket) return;
+    input.value = '';
+
+    var thread = getThread(activeChatTicket);
+    var msg = {sender:'user', text:text, time:new Date().toISOString()};
+    thread.push(msg);
+    var threadStr = JSON.stringify(thread);
+
+    renderChatMessages();
+    var cm = document.getElementById('chat-messages');
+    cm.scrollTop = cm.scrollHeight;
+
+    try {
+      await sbUpdateTicket(activeChatTicket.id, { response: threadStr });
+    } catch(e){
+      console.error('Failed to save reply:', e);
+      showToast('Reply not saved — check your connection');
+    }
+    loadSupportTickets();
+  }
+
+  async function loadSupportTickets(){
+    var listEl = document.getElementById('support-list');
+    if(!currentUser){
+      listEl.innerHTML = '<div class="support-empty">Log in to view and send support messages.</div>';
+      return;
+    }
+    listEl.innerHTML = '<div class="support-empty">Loading your messages…</div>';
+    var tickets = [];
+    try {
+      tickets = await sbSelectTickets(currentUser.id);
+    } catch(e){
+      tickets = [];
+    }
+    openChatTickets = tickets;
+
+    if(tickets.length === 0){
+      listEl.innerHTML = '<div class="support-empty">No messages yet. Send your first one below.</div>';
+    } else {
+      listEl.innerHTML = tickets.map(ticketCardHTML).join('');
+    }
+    var hasOpen = tickets.some(function(t){ return t.status !== 'resolved'; });
+    document.querySelector('.support-fab').classList.toggle('has-alert', !!hasOpen);
+    if(activeChatTicket){
+      var fresh = tickets.find(function(t){ return t.id === activeChatTicket.id; });
+      if(fresh){
+        activeChatTicket = fresh;
+        document.getElementById('chat-sub').textContent = fresh.status === 'resolved' ? 'Resolved' : 'Open';
+        renderChatMessages();
+      }
+    }
+  }
+
+  var supportBackTarget = 'dash';
+
+  function openSupport(){
+    supportBackTarget = 'dash';
+    goScreen('support');
+    loadSupportTickets();
+  }
+
+  function openSupportFromRestriction(){
+    supportBackTarget = 'restricted';
+    goScreen('support');
+    loadSupportTickets();
+    var subjectEl = document.getElementById('support-subject');
+    if(subjectEl) subjectEl.value = 'Account Restriction Inquiry';
+  }
+
+  function getLocalTickets(){
+    try { return JSON.parse(localStorage.getItem('boa_support_tickets') || '[]'); }
+    catch(e){ return []; }
+  }
+  function saveLocalTickets(arr){
+    localStorage.setItem('boa_support_tickets', JSON.stringify(arr));
+  }
+
+  async function submitComplaint(){
+    var subjectEl = document.getElementById('support-subject');
+    var messageEl = document.getElementById('support-message');
+    var errEl = document.getElementById('support-error');
+    var btn = document.getElementById('support-submit-btn');
+    var subject = subjectEl.value.trim();
+    var message = messageEl.value.trim();
+    errEl.style.display = 'none';
+
+    if(!currentUser){
+      errEl.textContent = 'Please log in to contact support.';
+      errEl.style.display = 'block';
+      return;
+    }
+    if(!subject || !message){
+      errEl.textContent = 'Please fill in both a subject and a message.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    btn.textContent = 'Sending…';
+    try {
+      await sbInsertTicket({
+        user_id: currentUser.id,
+        email: currentUser.email,
+        subject: subject,
+        message: message
+      });
+    } catch(e){
+      console.error('Supabase insert failed:', e);
+      errEl.textContent = 'Failed to send. Check your connection and try again.';
+      errEl.style.display = 'block';
+      btn.textContent = 'Send to Support';
+      return;
+    }
+
+    subjectEl.value = '';
+    messageEl.value = '';
+    showToast('Message sent to support');
+    loadSupportTickets();
+    btn.textContent = 'Send to Support';
+  }
+
+  function friendlyAuthError(err){
+    var msg = (err && err.message) || '';
+    var lower = msg.toLowerCase();
+    if(lower.indexOf('invalid login credentials') !== -1){
+      return 'Incorrect email or password. Please check and try again.';
+    }
+    if(lower.indexOf('email not confirmed') !== -1){
+      return 'This email hasn\'t been confirmed yet. Check your inbox, or disable "Confirm email" in Supabase for instant login.';
+    }
+    if(lower.indexOf('user already registered') !== -1){
+      return 'An account with this email already exists. Try logging in instead.';
+    }
+    if(lower.indexOf('password should be at least') !== -1){
+      return msg;
+    }
+    if(lower.indexOf('token has expired') !== -1 || lower.indexOf('otp expired') !== -1){
+      return 'That code has expired. Request a new one.';
+    }
+    if(lower.indexOf('token is invalid') !== -1 || lower.indexOf('invalid otp') !== -1 || lower.indexOf('invalid token') !== -1){
+      return 'That code is incorrect. Double-check it and try again.';
+    }
+    return msg || 'Something went wrong. Please try again.';
+  }
+
+  function openForgotScreen(){
+    document.getElementById('forgot-email').value = document.getElementById('in-email').value.trim();
+    document.getElementById('forgot-otp').value = '';
+    document.getElementById('forgot-new-pass').value = '';
+    document.getElementById('forgot-confirm-pass').value = '';
+    document.getElementById('forgot-error').style.display = 'none';
+    document.getElementById('forgot-verify-error').style.display = 'none';
+    document.getElementById('forgot-step-email').style.display = 'block';
+    document.getElementById('forgot-footer-email').style.display = 'block';
+    document.getElementById('forgot-step-verify').style.display = 'none';
+    document.getElementById('forgot-footer-verify').style.display = 'none';
+    document.getElementById('forgot-title').textContent = 'Reset your password';
+    document.getElementById('forgot-sub').textContent = "Enter your email and we'll send a one-time code via Supabase.";
+    goScreen('forgot');
+  }
+
+  async function handleSendResetCode(isResend){
+    var email = document.getElementById('forgot-email').value.trim();
+    var errEl = document.getElementById('forgot-error');
+    var btn = document.getElementById('forgot-send-btn');
+    errEl.style.display = 'none';
+
+    // When resending from step 2, reuse the email already shown there.
+    if(isResend){
+      email = document.getElementById('forgot-email-display').textContent;
+    }
+
+    if(!email){
+      errEl.textContent = 'Enter your email address.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    if(btn) btn.textContent = 'Sending…';
+    try {
+      var res = await supabaseClient.auth.resetPasswordForEmail(email);
+      if(res.error) throw res.error;
+
+      document.getElementById('forgot-step-email').style.display = 'none';
+      document.getElementById('forgot-footer-email').style.display = 'none';
+      document.getElementById('forgot-step-verify').style.display = 'block';
+      document.getElementById('forgot-footer-verify').style.display = 'block';
+      document.getElementById('forgot-email-display').textContent = email;
+      document.getElementById('forgot-title').textContent = 'Enter your code';
+      document.getElementById('forgot-sub').textContent = 'We sent a 6-digit code to your email.';
+      showToast(isResend ? 'Code resent' : 'Reset code sent');
+    } catch(err){
+      console.error('Bank of America reset-code error:', err);
+      errEl.textContent = friendlyAuthError(err);
+      errEl.style.display = 'block';
+    } finally {
+      if(btn) btn.textContent = 'Send Reset Code';
+    }
+  }
+
+  async function handleVerifyResetCode(){
+    var email = document.getElementById('forgot-email-display').textContent;
+    var otp = document.getElementById('forgot-otp').value.trim();
+    var newPass = document.getElementById('forgot-new-pass').value;
+    var confirmPass = document.getElementById('forgot-confirm-pass').value;
+    var errEl = document.getElementById('forgot-verify-error');
+    var btn = document.getElementById('forgot-reset-btn');
+    errEl.style.display = 'none';
+
+    if(!otp || otp.length < 6){
+      errEl.textContent = 'Enter the 6-digit code from your email.';
+      errEl.style.display = 'block';
+      return;
+    }
+    if(!newPass || newPass.length < 6){
+      errEl.textContent = 'New password must be at least 6 characters.';
+      errEl.style.display = 'block';
+      return;
+    }
+    if(newPass !== confirmPass){
+      errEl.textContent = 'Passwords do not match.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    btn.textContent = 'Resetting…';
+    try {
+      var verifyRes = await supabaseClient.auth.verifyOtp({ email: email, token: otp, type: 'recovery' });
+      if(verifyRes.error) throw verifyRes.error;
+
+      var updateRes = await supabaseClient.auth.updateUser({ password: newPass });
+      if(updateRes.error) throw updateRes.error;
+
+      setSessionUI(updateRes.data.user);
+      document.getElementById('forgot-otp').value = '';
+      document.getElementById('forgot-new-pass').value = '';
+      document.getElementById('forgot-confirm-pass').value = '';
+      showToast('Password reset — you\'re logged in');
+      goScreen('dash');
+    } catch(err){
+      console.error('Bank of America reset-verify error:', err);
+      errEl.textContent = friendlyAuthError(err);
+      errEl.style.display = 'block';
+    } finally {
+      btn.textContent = 'Reset Password';
+    }
+  }
+
+  async function handleAuthSubmit(){
+    var mode = document.getElementById('auth-submit').dataset.mode || 'login';
+    var email = document.getElementById('in-email').value.trim();
+    var password = document.getElementById('in-pass').value;
+    var name = document.getElementById('in-name') ? document.getElementById('in-name').value.trim() : '';
+    var errEl = document.getElementById('auth-error');
+    var btn = document.getElementById('auth-submit');
+    errEl.style.display = 'none';
+
+    if(!email || !password){
+      errEl.textContent = 'Enter both an email and a password.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    btn.textContent = mode === 'login' ? 'Logging in…' : 'Creating account…';
+
+    try {
+      if(mode === 'register'){
+        var signUpRes = await supabaseClient.auth.signUp({
+          email: email,
+          password: password,
+          options: { data: { full_name: name || 'Jordan A. Whitfield' } }
+        });
+        if(signUpRes.error) throw signUpRes.error;
+
+        if(signUpRes.data.session){
+          setSessionUI(signUpRes.data.user);
+          goScreen('dash');
+          showToast('Account created');
+        } else {
+          // Project has email confirmation enabled — try an immediate sign-in as a fallback.
+          var retry = await supabaseClient.auth.signInWithPassword({ email: email, password: password });
+          if(retry.error){
+            errEl.textContent = 'Account created, but email confirmation is required before login. Disable "Confirm email" in Supabase Auth settings for instant login.';
+            errEl.style.display = 'block';
+          } else {
+            setSessionUI(retry.data.user);
+            goScreen('dash');
+            showToast('Account created');
+          }
+        }
+      } else {
+        var signInRes = await supabaseClient.auth.signInWithPassword({ email: email, password: password });
+        if(signInRes.error) throw signInRes.error;
+        setSessionUI(signInRes.data.user);
+        goScreen('dash');
+        showToast('Logged in as ' + signInRes.data.user.email);
+      }
+    } catch(err){
+      console.error('Bank of America auth error:', err);
+      errEl.textContent = friendlyAuthError(err);
+      errEl.style.display = 'block';
+    } finally {
+      btn.textContent = mode === 'login' ? 'Log In' : 'Create Account';
+    }
+  }
+
+  async function handleLogout(){
+    if(supportChannel){ supabaseClient.removeChannel(supportChannel); supportChannel = null; }
+    await supabaseClient.auth.signOut();
+    state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+    renderBalance();
+    renderTxns();
+    updateSidebarView(false);
+    goScreen('landing');
+  }
+
+  async function checkExistingSession(){
+    var res = await supabaseClient.auth.getSession();
+    if(res.data && res.data.session){
+      setSessionUI(res.data.session.user);
+      goScreen('dash');
+    }
+  }
+
+  function showToast(msg){
+    var t = document.getElementById('toast');
+    document.getElementById('toast-text').textContent = msg;
+    t.classList.add('show');
+    clearTimeout(window._toastTimer);
+    window._toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 2400);
+  }
+
+  var bankRecipients = {
+    'Bank of America': 'James Richardson',
+    'JPMorgan Chase': 'Olivia Martinez',
+    'Wells Fargo': 'Ethan Brooks',
+    'Citibank': 'Sophia Nguyen',
+    'U.S. Bank': 'Liam Patel',
+    'PNC Bank': 'Emma Wilson',
+    'Capital One': 'Noah Garcia',
+    'TD Bank': 'Ava Thompson',
+    'BB&T (Truist)': 'Mason Clark',
+    'SunTrust (Truist)': 'Isabella Lewis',
+    'USAA': 'Lucas Walker',
+    'Charles Schwab': 'Mia Hall',
+    'Goldman Sachs': 'Alexander Young',
+    'Morgan Stanley': 'Charlotte King',
+    'Ally Bank': 'Daniel Wright',
+    'Discover Bank': 'Amelia Scott',
+    'American Express': 'Henry Adams',
+    'Navy Federal Credit Union': 'Harper Baker',
+    'Regions Bank': 'Sebastian Green',
+    'Fifth Third Bank': 'Evelyn Cooper',
+    'KeyBank': 'Jack Nelson',
+    'M&T Bank': 'Abigail Morgan',
+    'Huntington Bank': 'Owen Campbell',
+    'Citizens Bank': 'Emily Mitchell',
+    'BMO Harris': 'William Roberts'
+  };
+
+  function onSendBankChange(){
+    var bank = document.getElementById('send-bank').value;
+    var nameField = document.getElementById('send-name-field');
+    var nameInput = document.getElementById('send-name');
+    if(bank && bankRecipients[bank]){
+      nameField.style.display = 'block';
+      nameInput.value = bankRecipients[bank];
+    } else {
+      nameField.style.display = 'none';
+      nameInput.value = '';
+    }
+  }
+
+  async function handleSend(){
+    if(isUserRestricted()){
+      showRestrictedScreen();
+      return;
+    }
+    var bank = document.getElementById('send-bank').value;
+    var acct = document.getElementById('send-acct').value.trim();
+    var name = document.getElementById('send-name').value.trim();
+    var amt = parseFloat(document.getElementById('send-amt').value);
+    var note = document.getElementById('send-note').value.trim();
+    var errEl = document.getElementById('send-error');
+    errEl.style.display = 'none';
+
+    if(!bank){
+      errEl.textContent = 'Please select a bank.';
+      errEl.style.display = 'block';
+      return;
+    }
+    if(!acct || acct.length < 4){
+      errEl.textContent = 'Enter a valid account number (4-13 digits).';
+      errEl.style.display = 'block';
+      return;
+    }
+    if(!name){
+      errEl.textContent = 'Recipient name is required.';
+      errEl.style.display = 'block';
+      return;
+    }
+    if(!amt || amt <= 0){
+      errEl.textContent = 'Enter an amount greater than $0.00.';
+      errEl.style.display = 'block';
+      return;
+    }
+    if(amt > state.balance){
+      errEl.textContent = 'Amount exceeds your available balance.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    state.balance -= amt;
+    var noteText = note ? ' \u00b7 ' + note : '';
+    state.transactions.unshift({icon:'\u2191', name:'Transfer to ' + name + ' (' + bank + ')', date:'Today \u00b7 Sent' + noteText, amt: -amt});
+    renderBalance();
+    renderTxns();
+
+    document.getElementById('send-bank').value = '';
+    document.getElementById('send-acct').value = '';
+    document.getElementById('send-name').value = '';
+    document.getElementById('send-amt').value = '';
+    document.getElementById('send-note').value = '';
+    document.getElementById('send-name-field').style.display = 'none';
+
+    document.getElementById('send-success-msg').textContent = 'You have successfully sent ' + fmtBalance(amt) + ' to ' + name + '.';
+    document.getElementById('success-bank').textContent = bank;
+    document.getElementById('success-acct').textContent = '\u2022\u2022\u2022\u2022 ' + acct.slice(-4);
+    document.getElementById('success-name').textContent = name;
+    document.getElementById('success-amt').textContent = '-' + fmtBalance(amt);
+    goScreen('send-success');
+    await bumpTransferCount();
+  }
+
+  function handleRequest(){
+    var name = document.getElementById('req-name').value.trim() || 'Someone';
+    var amt = parseFloat(document.getElementById('req-amt').value);
+    var errEl = document.getElementById('req-error');
+    if(!amt || amt <= 0){
+      errEl.textContent = 'Enter an amount greater than $0.00.';
+      errEl.style.display = 'block';
+      return;
+    }
+    errEl.style.display = 'none';
+    document.getElementById('req-amt').value = '';
+    document.getElementById('req-note').value = '';
+    showToast('Requested ' + fmtBalance(amt) + ' from ' + name);
+    goScreen('dash');
+  }
+
+  function handleDeposit(){
+    var source = document.getElementById('dep-source').value;
+    var amt = parseFloat(document.getElementById('dep-amt').value);
+    var errEl = document.getElementById('dep-error');
+    if(!amt || amt <= 0){
+      errEl.textContent = 'Enter an amount greater than $0.00.';
+      errEl.style.display = 'block';
+      return;
+    }
+    errEl.style.display = 'none';
+    state.balance += amt;
+    state.transactions.unshift({icon:'＋', name:'Deposit via ' + source, date:'Today · Deposit', amt: amt});
+    renderBalance();
+    renderTxns();
+    document.getElementById('dep-amt').value = '';
+    showToast('Deposited ' + fmtBalance(amt));
+    goScreen('dash');
+  }
+
+  // init
+  setAuthTab('login');
+  renderBalance();
+  renderTxns();
+  updateNav('dash');
+  checkExistingSession();
+</script>
+
+</body>
+</html>
