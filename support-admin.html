@@ -2,168 +2,85 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Bank of America — Support Admin (Internal)</title>
+<title>Bank of America — Support Admin</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --paper:#F5F3EE;
-    --paper-dim:#EDEAE1;
-    --ink:#10233F;
-    --ink-soft:#2C3E58;
-    --brass:#C08A3E;
-    --brass-soft:#E4C68F;
-    --teal:#2F6F62;
-    --slate:#6B7280;
-    --line:rgba(16,35,63,0.14);
-    --neg:#B3492B;
+    --paper:#F5F3EE; --paper-dim:#EDEAE1; --ink:#10233F; --ink-soft:#2C3E58;
+    --brass:#C08A3E; --brass-soft:#E4C68F; --teal:#2F6F62; --slate:#6B7280;
+    --line:rgba(16,35,63,0.14); --neg:#B3492B;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
-  body{
-    background:var(--paper-dim);
-    font-family:'IBM Plex Sans',sans-serif;
-    color:var(--ink);
-    min-height:100vh;
-  }
+  body{background:var(--paper-dim);font-family:'IBM Plex Sans',sans-serif;color:var(--ink);min-height:100vh;}
   button{font-family:inherit;cursor:pointer;}
   input,textarea{font-family:inherit;}
 
-  .internal-banner{
-    background:var(--ink);color:var(--paper);
-    font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:0.05em;
-    text-align:center;padding:9px 16px;
-  }
+  .internal-banner{background:var(--ink);color:var(--paper);font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:0.05em;text-align:center;padding:9px 16px;}
   .internal-banner b{color:var(--brass-soft);}
 
-  /* ---------- Gate screen ---------- */
-  .gate-wrap{
-    min-height:calc(100vh - 38px);
-    display:flex;align-items:center;justify-content:center;
-    padding:24px;
-  }
-  .gate-card{
-    width:100%;max-width:420px;background:var(--paper);
-    border:1px solid var(--line);border-radius:16px;
-    padding:34px 30px;
-    box-shadow:0 20px 50px -20px rgba(16,35,63,0.25);
-  }
-  .gate-card .brand{
-    font-family:'Fraunces',serif;font-weight:600;font-size:20px;margin-bottom:4px;
-  }
+  .gate-wrap{min-height:calc(100vh - 38px);display:flex;align-items:center;justify-content:center;padding:24px;}
+  .gate-card{width:100%;max-width:420px;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:34px 30px;box-shadow:0 20px 50px -20px rgba(16,35,63,0.25);}
+  .gate-card .brand{font-family:'Fraunces',serif;font-weight:600;font-size:20px;margin-bottom:4px;}
   .gate-card .brand span{color:var(--brass);}
-  .gate-card .eyebrow{
-    font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:0.12em;
-    text-transform:uppercase;color:var(--slate);margin-bottom:20px;
-  }
-  .gate-card h2{
-    font-family:'Fraunces',serif;font-size:21px;font-weight:600;margin:16px 0 8px 0;
-  }
+  .gate-card .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--slate);margin-bottom:20px;}
+  .gate-card h2{font-family:'Fraunces',serif;font-size:21px;font-weight:600;margin:16px 0 8px 0;}
   .gate-card p{color:var(--slate);font-size:13px;line-height:1.6;margin:0 0 20px 0;}
   .field{margin-bottom:14px;}
   .field label{display:block;font-size:11.5px;color:var(--slate);margin-bottom:6px;}
-  .field input{
-    width:100%;border:1px solid var(--line);border-radius:10px;
-    padding:11px 12px;font-size:13.5px;background:#fff;color:var(--ink);
-  }
+  .field input{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px 12px;font-size:13.5px;background:#fff;color:var(--ink);}
   .field input:focus{outline:2px solid var(--teal);outline-offset:1px;}
-  .warn-box{
-    background:rgba(179,73,43,0.08);border:1px solid rgba(179,73,43,0.25);
-    border-radius:10px;padding:12px 14px;font-size:11.5px;color:#8A3A24;
-    line-height:1.6;margin-bottom:18px;
-  }
-  .btn-primary{
-    width:100%;background:var(--ink);color:var(--paper);border:none;
-    padding:13px;border-radius:10px;font-weight:600;font-size:13.5px;
-  }
+  .btn-primary{width:100%;background:var(--ink);color:var(--paper);border:none;padding:13px;border-radius:10px;font-weight:600;font-size:13.5px;}
   .gate-error{color:var(--neg);font-size:12px;margin-top:10px;display:none;}
+  .code-hint{background:var(--paper-dim);border-radius:8px;padding:10px 14px;font-size:11.5px;color:var(--slate);margin-bottom:18px;text-align:center;font-family:'IBM Plex Mono',monospace;}
 
-  /* ---------- Admin dashboard ---------- */
   #dash-wrap{display:none;max-width:900px;margin:0 auto;padding:28px 20px 60px 20px;}
   .dash-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
   .dash-header .brand{font-family:'Fraunces',serif;font-weight:600;font-size:20px;}
   .dash-header .brand span{color:var(--brass);}
   .dash-header .sub{font-size:12px;color:var(--slate);margin-top:2px;}
-  .disconnect-btn{
-    background:none;border:1px solid var(--line);border-radius:8px;
-    padding:8px 14px;font-size:12px;color:var(--ink-soft);font-weight:500;
-  }
+  .disconnect-btn{background:none;border:1px solid var(--line);border-radius:8px;padding:8px 14px;font-size:12px;color:var(--ink-soft);font-weight:500;}
 
   .stat-row{display:flex;gap:12px;margin:22px 0 20px 0;}
-  .stat-card{
-    flex:1;background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;
-  }
-  .stat-card b{
-    display:block;font-family:'IBM Plex Mono',monospace;font-size:22px;color:var(--ink);
-  }
+  .stat-card{flex:1;background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;}
+  .stat-card b{display:block;font-family:'IBM Plex Mono',monospace;font-size:22px;color:var(--ink);}
   .stat-card span{font-size:11px;color:var(--slate);text-transform:uppercase;letter-spacing:0.05em;}
 
-  .filter-row{display:flex;gap:8px;margin-bottom:18px;}
-  .filter-btn{
-    background:#fff;border:1px solid var(--line);border-radius:20px;
-    padding:7px 15px;font-size:12px;font-weight:500;color:var(--slate);
-  }
+  .filter-row{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
+  .filter-btn{background:#fff;border:1px solid var(--line);border-radius:20px;padding:7px 15px;font-size:12px;font-weight:500;color:var(--slate);}
   .filter-btn.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
 
-  .ticket-admin-card{
-    background:#fff;border:1px solid var(--line);border-radius:14px;
-    padding:18px 20px;margin-bottom:16px;
-  }
+  .ticket-admin-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:16px;}
   .ta-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}
   .ta-subject{font-family:'Fraunces',serif;font-weight:600;font-size:16px;}
-  .ta-meta{
-    font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--slate);margin-top:4px;
-  }
-  .ta-status{
-    font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.05em;
-    padding:4px 10px;border-radius:20px;white-space:nowrap;text-transform:uppercase;
-  }
+  .ta-meta{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--slate);margin-top:4px;}
+  .ta-status{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.05em;padding:4px 10px;border-radius:20px;white-space:nowrap;text-transform:uppercase;}
   .ta-status.open{background:rgba(192,138,62,0.14);color:#96692B;}
   .ta-status.resolved{background:rgba(47,111,98,0.14);color:var(--teal);}
-  .ta-msg{
-    font-size:13.5px;color:var(--ink-soft);line-height:1.6;margin:14px 0;
-    background:var(--paper-dim);border-radius:10px;padding:12px 14px;
-  }
+  .ta-msg{font-size:13.5px;color:var(--ink-soft);line-height:1.6;margin:14px 0;background:var(--paper-dim);border-radius:10px;padding:12px 14px;}
   .ta-thread{margin:12px 0;border-top:1px solid var(--line);padding-top:12px;}
-  .ta-thread-msg{
-    padding:10px 14px;border-radius:10px;margin-bottom:10px;font-size:13px;line-height:1.5;
-    max-width:85%;
-  }
+  .ta-thread-msg{padding:10px 14px;border-radius:10px;margin-bottom:10px;font-size:13px;line-height:1.5;max-width:85%;}
   .ta-thread-msg.admin{background:rgba(47,111,98,0.08);border-left:3px solid var(--teal);margin-left:auto;}
   .ta-thread-msg.user{background:var(--paper-dim);border-left:3px solid var(--brass);}
-  .ta-thread-label{
-    font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.06em;
-    text-transform:uppercase;margin-bottom:3px;
-  }
+  .ta-thread-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:3px;}
   .ta-thread-label.admin{color:var(--teal);}
   .ta-thread-label.user{color:var(--brass);}
   .ta-thread-time{font-size:10px;color:var(--slate);margin-top:3px;}
-  .ta-existing-reply{
-    font-size:12.5px;color:var(--slate);margin-bottom:10px;line-height:1.5;
-  }
-  .ta-existing-reply b{color:var(--ink-soft);}
   .ta-reply-area{width:100%;}
-  .ta-reply-area textarea{
-    width:100%;border:1px solid var(--line);border-radius:10px;
-    padding:11px 12px;font-size:13px;min-height:70px;resize:vertical;color:var(--ink);
-  }
+  .ta-reply-area textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px 12px;font-size:13px;min-height:70px;resize:vertical;color:var(--ink);}
   .ta-reply-area textarea:focus{outline:2px solid var(--teal);outline-offset:1px;}
   .ta-actions{display:flex;gap:10px;margin-top:10px;}
-  .ta-btn{
-    padding:9px 16px;border-radius:9px;font-size:12.5px;font-weight:600;border:none;
-  }
+  .ta-btn{padding:9px 16px;border-radius:9px;font-size:12.5px;font-weight:600;border:none;}
   .ta-btn.primary{background:var(--ink);color:var(--paper);}
   .ta-btn.ghost{background:none;border:1px solid var(--line);color:var(--ink-soft);}
-  .empty-state{
-    text-align:center;color:var(--slate);font-size:13px;padding:50px 20px;
-    border:1px dashed var(--line);border-radius:14px;background:#fff;
-  }
+  .empty-state{text-align:center;color:var(--slate);font-size:13px;padding:50px 20px;border:1px dashed var(--line);border-radius:14px;background:#fff;}
 </style>
 </head>
 <body>
 
-<div class="internal-banner">🔒 <b>INTERNAL TOOL</b> — Support staff only. Do not share this URL or your service role key.</div>
+<div class="internal-banner">🔒 <b>INTERNAL TOOL</b> — Authorized personnel only.</div>
 
 <!-- ============ GATE ============ -->
 <div class="gate-wrap" id="gate-wrap">
@@ -171,15 +88,13 @@
     <div class="brand">Bank of<span> America</span></div>
     <div class="eyebrow">Support Admin</div>
     <h2>Staff access</h2>
-    <p>Connect with your Supabase <b>service_role</b> key (JWT format, starts with <code>eyJ...</code>) to view and respond to customer support tickets. Find it in your Supabase Dashboard → Settings → API → <code>service_role</code> (secret).</p>
-    <div class="warn-box">
-      This key bypasses all row-level security and grants full database access. It is used only in your browser's memory for this session — never stored, logged, or sent anywhere besides your own Supabase project.
-    </div>
+    <p>Enter your admin access code to view and respond to customer support tickets.</p>
+    <div class="code-hint" id="code-hint"></div>
     <div class="field">
-      <label>Supabase Service Role Key</label>
-      <input type="password" id="service-key-input" placeholder="eyJhbGciOi...">
+      <label>Access Code</label>
+      <input type="password" id="code-input" placeholder="Enter access code" onkeydown="if(event.key==='Enter')connectAdmin()">
     </div>
-    <button class="btn-primary" onclick="connectAdmin()">Connect</button>
+    <button class="btn-primary" onclick="connectAdmin()">Access Dashboard</button>
     <div class="gate-error" id="gate-error"></div>
   </div>
 </div>
@@ -189,9 +104,9 @@
   <div class="dash-header">
     <div>
       <div class="brand">Bank of<span> America</span> Support</div>
-      <div class="sub">Reply to customer tickets — replies appear instantly in their app.</div>
+      <div class="sub">Reply to customer tickets — replies appear in customer apps within seconds.</div>
     </div>
-    <button class="disconnect-btn" onclick="disconnectAdmin()">Disconnect</button>
+    <button class="disconnect-btn" onclick="disconnectAdmin()">Lock</button>
   </div>
 
   <div class="stat-row">
@@ -210,18 +125,20 @@
   <div id="ticket-container"></div>
 </div>
 
-<!-- Local ticket API (no Supabase) -->
 <script>
   var TICKET_API = (function(){
     var host = window.location.hostname;
-    if(host === 'localhost' || host === '127.0.0.1'){
-      return 'http://localhost:8001/api/tickets';
-    }
+    if(host === 'localhost' || host === '127.0.0.1') return 'http://localhost:8001/api/tickets';
     return 'https://bank-demo-qrad.onrender.com/api/tickets';
   })();
+
+  var ADMIN_CODE = 'BOA2026';
   var allTickets = [];
   var currentFilter = 'all';
   var pollInterval = null;
+
+  // Show access code hint
+  document.getElementById('code-hint').textContent = 'Code: ' + ADMIN_CODE;
 
   function escapeHTML(str){
     var div = document.createElement('div');
@@ -231,10 +148,7 @@
 
   function getThread(t){
     if(!t.response) return [];
-    try {
-      var parsed = JSON.parse(t.response);
-      if(Array.isArray(parsed)) return parsed;
-    } catch(e){}
+    try { var parsed = JSON.parse(t.response); if(Array.isArray(parsed)) return parsed; } catch(e){}
     return [{sender:'admin', text:t.response, time:t.created_at}];
   }
 
@@ -244,46 +158,85 @@
     return '<div class="ta-thread-msg ' + (isAdmin ? 'admin' : 'user') + '">' +
       '<div class="ta-thread-label ' + (isAdmin ? 'admin' : 'user') + '">' + (isAdmin ? 'Support team' : 'Customer') + '</div>' +
       '<div>' + escapeHTML(m.text) + '</div>' +
-      '<div class="ta-thread-time">' + timeStr + '</div>' +
-      '</div>';
+      '<div class="ta-thread-time">' + timeStr + '</div></div>';
   }
 
-  // Auto-connect (no auth gate — local API is trusted)
-  document.addEventListener('DOMContentLoaded', function(){
+  function connectAdmin(){
+    var code = document.getElementById('code-input').value.trim();
+    var errEl = document.getElementById('gate-error');
+    errEl.style.display = 'none';
+    if(code !== ADMIN_CODE){
+      errEl.textContent = 'Invalid access code.';
+      errEl.style.display = 'block';
+      return;
+    }
     document.getElementById('gate-wrap').style.display = 'none';
     document.getElementById('dash-wrap').style.display = 'block';
     loadTickets();
     startPoll();
-  });
+  }
 
-  function startPoll(){
+  function disconnectAdmin(){
     stopPoll();
-    pollInterval = setInterval(function(){ loadTickets(true); }, 4000);
+    allTickets = [];
+    document.getElementById('code-input').value = '';
+    document.getElementById('dash-wrap').style.display = 'none';
+    document.getElementById('gate-wrap').style.display = 'flex';
+    document.getElementById('ticket-container').innerHTML = '';
   }
 
-  function stopPoll(){
-    if(pollInterval){ clearInterval(pollInterval); pollInterval = null; }
-  }
+  function startPoll(){ stopPoll(); pollInterval = setInterval(function(){ loadTickets(true); }, 4000); }
+  function stopPoll(){ if(pollInterval){ clearInterval(pollInterval); pollInterval = null; } }
 
   function showToast(msg){
     var toast = document.createElement('div');
     toast.style.cssText = 'position:fixed;top:50px;left:50%;transform:translateX(-50%);background:#10233F;color:#F5F3EE;padding:12px 24px;border-radius:10px;font-size:13px;font-weight:600;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.25);';
     toast.textContent = msg;
     document.body.appendChild(toast);
-    setTimeout(function(){ toast.remove(); }, 4000);
+    setTimeout(function(){ toast.remove(); }, 3000);
   }
 
   function setFilter(f){
     currentFilter = f;
-    ['all','open','resolved'].forEach(function(k){
-      document.getElementById('filter-' + k).classList.toggle('active', k === f);
-    });
+    ['all','open','resolved'].forEach(function(k){ document.getElementById('filter-'+k).classList.toggle('active', k===f); });
     renderTickets();
+  }
+
+  function saveFormState(){
+    var state = {};
+    document.querySelectorAll('textarea[id^="reply-"]').forEach(function(ta){
+      state[ta.id] = { value: ta.value, focused: document.activeElement === ta, start: ta.selectionStart, end: ta.selectionEnd };
+    });
+    var container = document.getElementById('ticket-container');
+    state._scroll = container ? container.scrollTop : 0;
+    return state;
+  }
+
+  function restoreFormState(state){
+    if(!state) return;
+    Object.keys(state).forEach(function(key){
+      if(key === '_scroll') return;
+      var d = state[key];
+      var ta = document.getElementById(key);
+      if(ta){
+        ta.value = d.value || '';
+        if(d.focused){
+          ta.focus();
+          try { ta.setSelectionRange(d.start, d.end); } catch(e){}
+        }
+      }
+    });
+    var container = document.getElementById('ticket-container');
+    if(container && state._scroll !== undefined) container.scrollTop = state._scroll;
   }
 
   async function loadTickets(silent){
     var container = document.getElementById('ticket-container');
     if(!silent) container.innerHTML = '<div class="empty-state">Loading tickets…</div>';
+
+    // Don't refresh DOM while admin is typing
+    var activeTextarea = document.activeElement && document.activeElement.tagName === 'TEXTAREA';
+
     try {
       var res = await fetch(TICKET_API);
       if(!res.ok) throw new Error('API error: ' + res.status);
@@ -292,116 +245,87 @@
       if(!silent) container.innerHTML = '<div class="empty-state">Failed to load: ' + escapeHTML(err.message) + '</div>';
       return;
     }
-    updateStats();
-    renderTickets();
+
+    if(activeTextarea){
+      // Just update stats, don't re-render
+      updateStats();
+    } else {
+      updateStats();
+      renderTickets();
+    }
   }
 
   function updateStats(){
     var open = allTickets.filter(function(t){ return t.status !== 'resolved'; }).length;
-    var resolved = allTickets.length - open;
     document.getElementById('stat-total').textContent = allTickets.length;
     document.getElementById('stat-open').textContent = open;
-    document.getElementById('stat-resolved').textContent = resolved;
-  }
-
-  function saveTextareaValues(){
-    var vals = {};
-    document.querySelectorAll('textarea[id^="reply-"]').forEach(function(ta){
-      vals[ta.id] = ta.value;
-    });
-    return vals;
-  }
-
-  function restoreTextareaValues(vals){
-    Object.keys(vals).forEach(function(id){
-      var ta = document.getElementById(id);
-      if(ta) ta.value = vals[id];
-    });
+    document.getElementById('stat-resolved').textContent = allTickets.length - open;
   }
 
   function renderTickets(){
     var container = document.getElementById('ticket-container');
-    var savedVals = saveTextareaValues();
+    var state = saveFormState();
     var list = allTickets.filter(function(t){
       if(currentFilter === 'open') return t.status !== 'resolved';
       if(currentFilter === 'resolved') return t.status === 'resolved';
       return true;
     });
 
-    if(list.length === 0){
-      container.innerHTML = '<div class="empty-state">No tickets in this view.</div>';
-      return;
-    }
+    if(list.length === 0){ container.innerHTML = '<div class="empty-state">No tickets in this view.</div>'; return; }
 
     container.innerHTML = list.map(function(t){
       var isResolved = t.status === 'resolved';
-      var dateStr = new Date(t.created_at).toLocaleString('en-US', {
-        month:'short', day:'numeric', year:'numeric', hour:'numeric', minute:'2-digit'
-      });
+      var dateStr = new Date(t.created_at).toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});
       var thread = getThread(t);
       var threadHTML = thread.map(threadMsgHTML).join('');
-      return '<div class="ticket-admin-card" data-id="' + t.id + '">' +
-        '<div class="ta-top">' +
-          '<div><div class="ta-subject">' + escapeHTML(t.subject) + '</div>' +
-          '<div class="ta-meta">' + escapeHTML(t.email) + ' · ' + dateStr + '</div></div>' +
-          '<span class="ta-status ' + (isResolved ? 'resolved' : 'open') + '">' + (isResolved ? 'Resolved' : 'Open') + '</span>' +
-        '</div>' +
-        '<div class="ta-msg">' + escapeHTML(t.message) + '</div>' +
-        (threadHTML ? '<div class="ta-thread">' + threadHTML + '</div>' : '') +
-        '<div class="ta-reply-area">' +
-          '<textarea id="reply-' + t.id + '" placeholder="Write a reply…"></textarea>' +
-          '<div class="ta-actions">' +
-            '<button class="ta-btn primary" onclick="sendReply(\'' + t.id + '\')">Send Reply</button>' +
+      return '<div class="ticket-admin-card">'+
+        '<div class="ta-top">'+
+          '<div><div class="ta-subject">'+escapeHTML(t.subject)+'</div>'+
+          '<div class="ta-meta">'+escapeHTML(t.email)+' · '+dateStr+'</div></div>'+
+          '<span class="ta-status '+(isResolved?'resolved':'open')+'">'+(isResolved?'Resolved':'Open')+'</span>'+
+        '</div>'+
+        '<div class="ta-msg">'+escapeHTML(t.message)+'</div>'+
+        (threadHTML?'<div class="ta-thread">'+threadHTML+'</div>':'')+
+        '<div class="ta-reply-area">'+
+          '<textarea id="reply-'+t.id+'" placeholder="Write a reply…"></textarea>'+
+          '<div class="ta-actions">'+
+            '<button class="ta-btn primary" onclick="sendReply(\''+t.id+'\')">Send Reply</button>'+
             (isResolved
-              ? '<button class="ta-btn ghost" onclick="reopenTicket(\'' + t.id + '\')">Reopen</button>'
-              : '<button class="ta-btn ghost" onclick="resolveTicket(\'' + t.id + '\')">Resolve</button>') +
-          '</div>' +
-        '</div>' +
+              ?'<button class="ta-btn ghost" onclick="reopenTicket(\''+t.id+'\')">Reopen</button>'
+              :'<button class="ta-btn ghost" onclick="resolveTicket(\''+t.id+'\')">Resolve</button>')+
+          '</div>'+
+        '</div>'+
       '</div>';
     }).join('');
-    restoreTextareaValues(savedVals);
+
+    restoreFormState(state);
   }
 
   async function sendReply(id){
-    var textarea = document.getElementById('reply-' + id);
+    var textarea = document.getElementById('reply-'+id);
     var reply = textarea.value.trim();
-    if(!reply){ alert('Write a reply before sending.'); return; }
+    if(!reply){ alert('Write a reply first.'); return; }
     textarea.value = '';
     var ticket = allTickets.find(function(t){ return t.id === id; });
     var thread = ticket ? getThread(ticket) : [];
     thread.push({sender:'admin', text:reply, time:new Date().toISOString()});
     try {
-      var res = await fetch(TICKET_API + '/' + id, {
-        method: 'PUT',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ response: JSON.stringify(thread) })
+      var res = await fetch(TICKET_API+'/'+id,{
+        method:'PUT', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({response:JSON.stringify(thread)})
       });
-      if(!res.ok) throw new Error('API error: ' + res.status);
-    } catch(err){ alert('Failed to send: ' + err.message); }
+      if(!res.ok) throw new Error('Failed');
+    } catch(err){ alert('Failed to send: '+err.message); }
     await loadTickets(true);
   }
 
   async function resolveTicket(id){
-    try {
-      var res = await fetch(TICKET_API + '/' + id, {
-        method: 'PUT',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ status: 'resolved' })
-      });
-      if(!res.ok) throw new Error('API error: ' + res.status);
-    } catch(err){ alert('Failed: ' + err.message); }
+    await fetch(TICKET_API+'/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'resolved'})});
     await loadTickets(true);
   }
 
   async function reopenTicket(id){
-    try {
-      var res = await fetch(TICKET_API + '/' + id, {
-        method: 'PUT',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ status: 'open' })
-      });
-      if(!res.ok) throw new Error('API error: ' + res.status);
-    } catch(err){ alert('Failed: ' + err.message); }
+    await fetch(TICKET_API+'/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'open'})});
     await loadTickets(true);
   }
 </script>
