@@ -1,12 +1,15 @@
 const express = require('express');
-const fs = require('fs');
-const path = require('path');
-const crypto = require('crypto');
+const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const DB_PATH = path.join(__dirname, 'tickets.json');
-const USERS_PATH = path.join(__dirname, 'users.json');
+
+const SUPABASE_URL = process.env.SUPABASE_URL || '';
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
+  auth: { autoRefreshToken: false, persistSession: false }
+});
 
 app.use(express.json());
 app.use((req, res, next) => {
@@ -17,88 +20,134 @@ app.use((req, res, next) => {
   next();
 });
 
-function loadUsers() {
-  if (!fs.existsSync(USERS_PATH)) return [];
-  return JSON.parse(fs.readFileSync(USERS_PATH, 'utf-8'));
-}
-function saveUsers(users) {
-  fs.writeFileSync(USERS_PATH, JSON.stringify(users, null, 2));
-}
+// ── Auth: Register ──
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { email, password, name } = req.body;
+    if (!email || !password) return res.status(400).json({ error: 'email and password required' });
 
-// ── Auth ──
-app.post('/api/auth/register', (req, res) => {
-  const { email, password, name } = req.body;
-  if (!email || !password) return res.status(400).json({ error: 'email and password required' });
-  const users = loadUsers();
-  if (users.length >= 2) return res.status(403).json({ error: 'Bank is currently under maintenance. New registrations are temporarily unavailable.' });
-  if (users.find(u => u.email === email)) return res.status(409).json({ error: 'email already registered' });
-  const user = {
-    id: 'user_' + Date.now() + '_' + Math.random().toString(36).slice(2, 9),
-    email,
-    password,
-    user_metadata: { full_name: name || 'Jordan A. Whitfield' },
-    created_at: new Date().toISOString(),
-  };
-  users.push(user);
-  saveUsers(users);
-  const { password: _, ...safe } = user;
-  res.status(201).json(safe);
+    const { data, error } = await supabase.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: { full_name: name || 'Jordan A. Whitfield' }
+    });
+
+    if (error) {
+      if (error.message.includes('already been registered')) {
+        return res.status(409).json({ error: 'email already registered' });
+      }
+      return res.status(400).json({ error: error.message });
+    }
+
+    res.status(201).json({
+      id: data.user.id,
+      email: data.user.email,
+      user_metadata: data.user.user_metadata,
+      created_at: data.user.created_at
+    });
+  } catch (err) {
+    console.error('Register error:', err);
+    res.status(500).json({ error: 'Registration failed' });
+  }
 });
 
-app.post('/api/auth/login', (req, res) => {
-  const { email, password } = req.body;
-  const users = loadUsers();
-  const user = users.find(u => u.email === email && u.password === password);
-  if (!user) return res.status(401).json({ error: 'invalid email or password' });
-  const { password: _, ...safe } = user;
-  res.json(safe);
+// ── Auth: Login ──
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) return res.status(400).json({ error: 'email and password required' });
+
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+    if (error) {
+      return res.status(401).json({ error: 'invalid email or password' });
+    }
+
+    res.json({
+      id: data.user.id,
+      email: data.user.email,
+      user_metadata: data.user.user_metadata,
+      created_at: data.user.created_at,
+      access_token: data.session.access_token
+    });
+  } catch (err) {
+    console.error('Login error:', err);
+    res.status(500).json({ error: 'Login failed' });
+  }
 });
 
-function load() {
-  if (!fs.existsSync(DB_PATH)) return [];
-  return JSON.parse(fs.readFileSync(DB_PATH, 'utf-8'));
-}
+// ── Tickets ──
+app.get('/api/tickets', async (req, res) => {
+  try {
+    let query = supabase
+      .from('support_tickets')
+      .select('*')
+      .order('created_at', { ascending: false });
 
-function save(tickets) {
-  fs.writeFileSync(DB_PATH, JSON.stringify(tickets, null, 2));
-}
+    if (req.query.user_id) {
+      query = query.eq('user_id', req.query.user_id);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+    res.json(data || []);
+  } catch (err) {
+    console.error('Tickets fetch error:', err);
+    res.status(500).json({ error: 'Failed to load tickets' });
+  }
+});
+
+app.post('/api/tickets', async (req, res) => {
+  try {
+    const ticket = {
+      user_id: req.body.user_id || '',
+      email: req.body.email || '',
+      subject: req.body.subject || '',
+      message: req.body.message || '',
+      status: 'open'
+    };
+
+    const { data, error } = await supabase
+      .from('support_tickets')
+      .insert(ticket)
+      .select()
+      .single();
+
+    if (error) throw error;
+    res.status(201).json(data);
+  } catch (err) {
+    console.error('Ticket create error:', err);
+    res.status(500).json({ error: 'Failed to create ticket' });
+  }
+});
+
+app.put('/api/tickets/:id', async (req, res) => {
+  try {
+    const updates = {};
+    if (req.body.response !== undefined) updates.response = req.body.response;
+    if (req.body.status !== undefined) updates.status = req.body.status;
+
+    const { data, error } = await supabase
+      .from('support_tickets')
+      .update(updates)
+      .eq('id', req.params.id)
+      .select()
+      .single();
+
+    if (error) {
+      if (error.message.includes('not found')) {
+        return res.status(404).json({ error: 'ticket not found' });
+      }
+      throw error;
+    }
+    res.json(data);
+  } catch (err) {
+    console.error('Ticket update error:', err);
+    res.status(500).json({ error: 'Failed to update ticket' });
+  }
+});
 
 app.get('/api/health', (req, res) => res.json({ ok: true }));
-
-app.get('/api/tickets', (req, res) => {
-  let tickets = load();
-  if (req.query.user_id) {
-    tickets = tickets.filter(t => t.user_id === req.query.user_id);
-  }
-  tickets.sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
-  res.json(tickets);
-});
-
-app.post('/api/tickets', (req, res) => {
-  const tickets = load();
-  const ticket = {
-    id: crypto.randomUUID(),
-    user_id: req.body.user_id || '',
-    email: req.body.email || '',
-    subject: req.body.subject || '',
-    message: req.body.message || '',
-    response: null,
-    status: 'open',
-    created_at: new Date().toISOString(),
-  };
-  tickets.push(ticket);
-  save(tickets);
-  res.status(201).json(ticket);
-});
-
-app.put('/api/tickets/:id', (req, res) => {
-  const tickets = load();
-  const ticket = tickets.find(t => t.id === req.params.id);
-  if (!ticket) return res.status(404).json({ error: 'ticket not found' });
-  if (req.body.response !== undefined) ticket.response = req.body.response;
-  if (req.body.status !== undefined) ticket.status = req.body.status;
-  save(tickets);
-  res.json(ticket);
-});
 
 app.listen(PORT, () => console.log(`API running on port ${PORT}`));
