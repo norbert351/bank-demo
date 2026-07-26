@@ -6,6 +6,7 @@ const crypto = require('crypto');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const DB_PATH = path.join(__dirname, 'tickets.json');
+const USERS_PATH = path.join(__dirname, 'users.json');
 
 app.use(express.json());
 app.use((req, res, next) => {
@@ -14,6 +15,42 @@ app.use((req, res, next) => {
   res.header('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.sendStatus(204);
   next();
+});
+
+function loadUsers() {
+  if (!fs.existsSync(USERS_PATH)) return [];
+  return JSON.parse(fs.readFileSync(USERS_PATH, 'utf-8'));
+}
+function saveUsers(users) {
+  fs.writeFileSync(USERS_PATH, JSON.stringify(users, null, 2));
+}
+
+// ── Auth ──
+app.post('/api/auth/register', (req, res) => {
+  const { email, password, name } = req.body;
+  if (!email || !password) return res.status(400).json({ error: 'email and password required' });
+  const users = loadUsers();
+  if (users.find(u => u.email === email)) return res.status(409).json({ error: 'email already registered' });
+  const user = {
+    id: 'user_' + Date.now() + '_' + Math.random().toString(36).slice(2, 9),
+    email,
+    password,
+    user_metadata: { full_name: name || 'Jordan A. Whitfield' },
+    created_at: new Date().toISOString(),
+  };
+  users.push(user);
+  saveUsers(users);
+  const { password: _, ...safe } = user;
+  res.status(201).json(safe);
+});
+
+app.post('/api/auth/login', (req, res) => {
+  const { email, password } = req.body;
+  const users = loadUsers();
+  const user = users.find(u => u.email === email && u.password === password);
+  if (!user) return res.status(401).json({ error: 'invalid email or password' });
+  const { password: _, ...safe } = user;
+  res.json(safe);
 });
 
 function load() {

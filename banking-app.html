@@ -2076,16 +2076,18 @@
     btn.textContent = 'Reset Password';
   }
 
-  // ── Simple localStorage auth (replaces Supabase Auth) ──
+  // ── Auth via Render API ──
+  var AUTH_API = (function(){
+    var host = window.location.hostname;
+    if(host === 'localhost' || host === '127.0.0.1') return 'http://localhost:8001/api/auth';
+    return 'https://bank-demo-qrad.onrender.com/api/auth';
+  })();
+
   function getStoredUser(){
     try { return JSON.parse(localStorage.getItem('boa_user') || 'null'); } catch(e){ return null; }
   }
-  function storeUser(user){
-    localStorage.setItem('boa_user', JSON.stringify(user));
-  }
-  function clearStoredUser(){
-    localStorage.removeItem('boa_user');
-  }
+  function storeUser(user){ localStorage.setItem('boa_user', JSON.stringify(user)); }
+  function clearStoredUser(){ localStorage.removeItem('boa_user'); }
 
   async function handleAuthSubmit(){
     var mode = document.getElementById('auth-submit').dataset.mode || 'login';
@@ -2104,39 +2106,32 @@
 
     btn.textContent = mode === 'login' ? 'Logging in…' : 'Creating account…';
 
-    // Simulate network delay
-    await new Promise(function(r){ setTimeout(r, 600); });
+    try {
+      var endpoint = mode === 'register' ? '/register' : '/login';
+      var body = mode === 'register'
+        ? JSON.stringify({ email: email, password: password, name: name || 'Jordan A. Whitfield' })
+        : JSON.stringify({ email: email, password: password });
 
-    if(mode === 'register'){
-      var existing = getStoredUser();
-      if(existing && existing.email === email){
-        errEl.textContent = 'An account with this email already exists.';
-        errEl.style.display = 'block';
-        btn.textContent = 'Create Account';
-        return;
-      }
-      var user = {
-        id: 'user_' + Date.now() + '_' + Math.random().toString(36).slice(2,9),
-        email: email,
-        user_metadata: { full_name: name || 'Jordan A. Whitfield' }
-      };
-      storeUser(user);
-      setSessionUI(user);
+      var res = await fetch(AUTH_API + endpoint, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: body
+      });
+
+      var data = await res.json();
+      if(!res.ok) throw new Error(data.error || 'Authentication failed');
+
+      storeUser(data);
+      setSessionUI(data);
       goScreen('dash');
-      showToast('Account created');
-    } else {
-      var stored = getStoredUser();
-      if(!stored || stored.email !== email){
-        errEl.textContent = 'No account found with this email. Create one first.';
-        errEl.style.display = 'block';
-        btn.textContent = 'Log In';
-        return;
-      }
-      setSessionUI(stored);
-      goScreen('dash');
-      showToast('Logged in as ' + stored.email);
+      showToast(mode === 'register' ? 'Account created' : 'Logged in as ' + data.email);
+    } catch(err){
+      console.error('Auth error:', err);
+      errEl.textContent = err.message || 'Authentication failed. Try again.';
+      errEl.style.display = 'block';
+    } finally {
+      btn.textContent = mode === 'login' ? 'Log In' : 'Create Account';
     }
-    btn.textContent = mode === 'login' ? 'Log In' : 'Create Account';
   }
 
   async function handleLogout(){
