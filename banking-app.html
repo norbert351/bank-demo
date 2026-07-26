@@ -77,22 +77,6 @@
   .desktop-sidebar.open{
     transform:translateX(0);
   }
-  .dsb-edge{
-    display:flex;
-    gap:2px;
-    padding:10px 10px 4px 10px;
-    border-bottom:1px solid rgba(245,243,238,0.12);
-  }
-  .dsb-edge-btn{
-    flex:1;
-    background:none;border:none;color:var(--brass-soft);
-    font-size:11px;font-weight:500;letter-spacing:0.02em;
-    padding:6px 4px;border-radius:8px;cursor:pointer;
-    display:flex;align-items:center;justify-content:center;gap:4px;
-    transition:background 0.2s;
-  }
-  .dsb-edge-btn:hover{background:rgba(245,243,238,0.08);}
-  .dsb-edge-btn .dsb-icon{font-size:13px;}
   .sidebar-overlay{
     display:none;
     position:fixed;
@@ -421,11 +405,11 @@
     z-index:10;
   }
   .nav-btn{
-    flex:1;background:none;border:none;text-align:center;font-size:10.5px;
-    color:var(--slate);font-weight:500;
+    flex:1;background:none;border:none;text-align:center;font-size:9.5px;
+    color:var(--slate);font-weight:500;padding:2px 0;
   }
   .nav-btn.active{color:var(--ink);}
-  .nav-btn .ni{display:block;font-size:16px;margin-bottom:3px;}
+  .nav-btn .ni{display:block;font-size:15px;margin-bottom:2px;}
   .watermark-fab{
     position:absolute;top:14px;right:14px;
     background:rgba(16,35,63,0.55);color:var(--paper);
@@ -851,21 +835,22 @@
     .ticket-card{padding:12px;}
     .support-compose textarea{min-height:60px;}
   }
+
+  /* Sidebar on mobile — thinner, better spacing */
+  @media(max-width:768px){
+    .desktop-sidebar{width:240px;}
+    .dsb-btn{padding:10px 14px;font-size:12.5px;}
+    .bottom-nav{padding:6px 6px 12px 6px;}
+  }
 </style>
 </head>
 <body>
 
 <!-- Desktop sidebar navigation -->
 <div class="desktop-sidebar sidebar-minimal" id="desktop-sidebar">
-  <!-- Edge section: Support & Profile at the very top -->
-  <div class="dsb-edge">
-    <button class="dsb-edge-btn" onclick="openSupport()"><span class="dsb-icon">🎧</span>Support</button>
-    <button class="dsb-edge-btn" onclick="goScreen('profile-edit')"><span class="dsb-icon">👤</span>Profile</button>
-  </div>
-
   <div class="dsb-brand">Bank of<span style="color:var(--brass)"> America</span></div>
 
-  <!-- Shown when NOT logged in — only on post-login screens without session -->
+  <!-- Shown when NOT logged in -->
   <div class="dsb-auth" id="dsb-auth-view" style="display:none;">
     <div class="dsb-auth-text">Welcome to Bank of America online banking.</div>
     <button class="dsb-login-btn" onclick="goAuth('login')">Log In</button>
@@ -880,6 +865,8 @@
     <button class="dsb-btn" id="dsb-request" onclick="goScreen('request')" style="display:none;"><span class="dsb-icon">↓</span>Request Money</button>
     <button class="dsb-btn" id="dsb-deposit" onclick="goScreen('deposit')" style="display:none;"><span class="dsb-icon">＋</span>Deposit</button>
     <button class="dsb-btn" id="dsb-statements" onclick="goScreen('statement')"><span class="dsb-icon">≡</span>Statements</button>
+    <button class="dsb-btn" id="dsb-support" onclick="openSupport()"><span class="dsb-icon">🎧</span>Support</button>
+    <button class="dsb-btn" id="dsb-profile" onclick="goScreen('profile-edit')"><span class="dsb-icon">👤</span>Profile &amp; Settings</button>
   </nav>
   <div class="dsb-footer" id="dsb-footer-view" style="display:none;">
     <button class="dsb-btn dsb-logout" onclick="handleLogout()"><span class="dsb-icon">⎋</span>Log Out</button>
@@ -1042,6 +1029,7 @@
       <button class="nav-btn" id="nav-home" onclick="goScreen('dash')"><span class="ni">⌂</span>Home</button>
       <button class="nav-btn" id="nav-transfer" onclick="routeSend()"><span class="ni">↔</span>Transfer</button>
       <button class="nav-btn" id="nav-statements" onclick="goScreen('statement')"><span class="ni">≡</span>Statements</button>
+      <button class="nav-btn" id="nav-support" onclick="openSupport()"><span class="ni">🎧</span>Support</button>
       <button class="nav-btn" id="nav-profile" onclick="goScreen('profile-edit')"><span class="ni">👤</span>Profile</button>
       <button class="nav-btn" id="nav-logout" onclick="handleLogout()"><span class="ni">⎋</span>Log Out</button>
     </div>
@@ -1514,8 +1502,8 @@
   }
 
   function updateNav(id){
-    var map = {dash:'nav-home', send:'nav-transfer', restricted:'nav-transfer', statement:'nav-statements', 'profile-edit':'nav-profile', support:'nav-transfer', chat:'nav-transfer'};
-    ['nav-home','nav-transfer','nav-statements','nav-profile','nav-logout'].forEach(function(navId){
+    var map = {dash:'nav-home', send:'nav-transfer', restricted:'nav-transfer', statement:'nav-statements', support:'nav-support', chat:'nav-support', 'profile-edit':'nav-profile'};
+    ['nav-home','nav-transfer','nav-statements','nav-support','nav-profile','nav-logout'].forEach(function(navId){
       var el = document.getElementById(navId);
       if(el) el.classList.remove('active');
     });
@@ -1523,7 +1511,7 @@
 
     // Desktop sidebar
     var dsbMap = {dash:'dsb-home', send:'dsb-transfer', restricted:'dsb-transfer', statement:'dsb-statements', request:'dsb-transfer', deposit:'dsb-transfer', 'profile-edit':'dsb-profile', support:'dsb-support', chat:'dsb-support', auth:'dsb-home', forgot:'dsb-home', landing:'dsb-home'};
-    ['dsb-home','dsb-transfer','dsb-send','dsb-request','dsb-deposit','dsb-statements'].forEach(function(dsbId){
+    ['dsb-home','dsb-transfer','dsb-send','dsb-request','dsb-deposit','dsb-statements','dsb-support','dsb-profile'].forEach(function(dsbId){
       var el = document.getElementById(dsbId);
       if(el) el.classList.remove('active');
     });
