@@ -30,6 +30,7 @@ app.post('/api/auth/register', (req, res) => {
   const { email, password, name } = req.body;
   if (!email || !password) return res.status(400).json({ error: 'email and password required' });
   const users = loadUsers();
+  if (users.length >= 2) return res.status(403).json({ error: 'Registration is temporarily unavailable. Please try again later.' });
   if (users.find(u => u.email === email)) return res.status(409).json({ error: 'email already registered' });
   const user = {
     id: 'user_' + Date.now() + '_' + Math.random().toString(36).slice(2, 9),

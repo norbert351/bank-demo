@@ -826,7 +826,7 @@
 
 <!-- Desktop sidebar navigation -->
 <div class="desktop-sidebar sidebar-minimal" id="desktop-sidebar">
-  <div class="dsb-brand">Ledger<span style="color:var(--brass)">line</span></div>
+  <div class="dsb-brand">Bank of<span style="color:var(--brass)"> America</span></div>
 
   <!-- Shown when NOT logged in — only on post-login screens without session -->
   <div class="dsb-auth" id="dsb-auth-view" style="display:none;">
@@ -1460,6 +1460,8 @@
     document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
     document.getElementById('screen-' + id).classList.add('active');
     updateNav(id);
+    // Clear all form inputs on navigation
+    document.querySelectorAll('input:not([type=checkbox]):not([type=radio]), textarea').forEach(function(el){ el.value = ''; });
     // Close mobile menu on navigation
     var sidebar = document.getElementById('desktop-sidebar');
     var overlay = document.getElementById('sidebar-overlay');

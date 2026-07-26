@@ -1,0 +1,22 @@
+[
+  {
+    "id": "11912ea1-726b-4370-b4f6-7bb745e90f8d",
+    "user_id": "user_1785021879588_p06dcra",
+    "email": "macbright822@gmail.com",
+    "subject": "hhgvhnjh",
+    "message": "hgbjhnk",
+    "response": "[{\"sender\":\"admin\",\"text\":\"ghjgyhj\",\"time\":\"2026-07-25T23:27:07.180Z\"}]",
+    "status": "open",
+    "created_at": "2026-07-25T23:24:58.139468+00:00"
+  },
+  {
+    "id": "a20abcf6-c8ff-45b6-ab16-43a48a06aba6",
+    "user_id": "test",
+    "email": "test@test.com",
+    "subject": "Hello",
+    "message": "Test from remote",
+    "response": null,
+    "status": "open",
+    "created_at": "2026-07-26T00:01:15.464362+00:00"
+  }
+]
