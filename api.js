@@ -1,8 +1,12 @@
 const express = require('express');
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
 const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const DB_PATH = path.join(__dirname, 'tickets.json');
 
 const SUPABASE_URL = process.env.SUPABASE_URL || '';
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
@@ -20,7 +24,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// ── Auth: Register ──
+// ── Auth via Supabase (persists across devices) ──
 app.post('/api/auth/register', async (req, res) => {
   try {
     const { email, password, name } = req.body;
@@ -52,7 +56,6 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
-// ── Auth: Login ──
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -77,75 +80,49 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
-// ── Tickets ──
-app.get('/api/tickets', async (req, res) => {
-  try {
-    let query = supabase
-      .from('support_tickets')
-      .select('*')
-      .order('created_at', { ascending: false });
+// ── Tickets via local JSON (simple, works on Render free tier) ──
+function loadTickets() {
+  if (!fs.existsSync(DB_PATH)) return [];
+  return JSON.parse(fs.readFileSync(DB_PATH, 'utf-8'));
+}
+function saveTickets(tickets) {
+  fs.writeFileSync(DB_PATH, JSON.stringify(tickets, null, 2));
+}
 
-    if (req.query.user_id) {
-      query = query.eq('user_id', req.query.user_id);
-    }
-
-    const { data, error } = await query;
-    if (error) throw error;
-    res.json(data || []);
-  } catch (err) {
-    console.error('Tickets fetch error:', err);
-    res.status(500).json({ error: 'Failed to load tickets' });
+app.get('/api/tickets', (req, res) => {
+  let tickets = loadTickets();
+  if (req.query.user_id) {
+    tickets = tickets.filter(t => t.user_id === req.query.user_id);
   }
+  tickets.sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
+  res.json(tickets);
 });
 
-app.post('/api/tickets', async (req, res) => {
-  try {
-    const ticket = {
-      user_id: req.body.user_id || '',
-      email: req.body.email || '',
-      subject: req.body.subject || '',
-      message: req.body.message || '',
-      status: 'open'
-    };
-
-    const { data, error } = await supabase
-      .from('support_tickets')
-      .insert(ticket)
-      .select()
-      .single();
-
-    if (error) throw error;
-    res.status(201).json(data);
-  } catch (err) {
-    console.error('Ticket create error:', err);
-    res.status(500).json({ error: 'Failed to create ticket' });
-  }
+app.post('/api/tickets', (req, res) => {
+  const tickets = loadTickets();
+  const ticket = {
+    id: crypto.randomUUID(),
+    user_id: req.body.user_id || '',
+    email: req.body.email || '',
+    subject: req.body.subject || '',
+    message: req.body.message || '',
+    response: null,
+    status: 'open',
+    created_at: new Date().toISOString()
+  };
+  tickets.push(ticket);
+  saveTickets(tickets);
+  res.status(201).json(ticket);
 });
 
-app.put('/api/tickets/:id', async (req, res) => {
-  try {
-    const updates = {};
-    if (req.body.response !== undefined) updates.response = req.body.response;
-    if (req.body.status !== undefined) updates.status = req.body.status;
-
-    const { data, error } = await supabase
-      .from('support_tickets')
-      .update(updates)
-      .eq('id', req.params.id)
-      .select()
-      .single();
-
-    if (error) {
-      if (error.message.includes('not found')) {
-        return res.status(404).json({ error: 'ticket not found' });
-      }
-      throw error;
-    }
-    res.json(data);
-  } catch (err) {
-    console.error('Ticket update error:', err);
-    res.status(500).json({ error: 'Failed to update ticket' });
-  }
+app.put('/api/tickets/:id', (req, res) => {
+  const tickets = loadTickets();
+  const ticket = tickets.find(t => t.id === req.params.id);
+  if (!ticket) return res.status(404).json({ error: 'ticket not found' });
+  if (req.body.response !== undefined) ticket.response = req.body.response;
+  if (req.body.status !== undefined) ticket.status = req.body.status;
+  saveTickets(tickets);
+  res.json(ticket);
 });
 
 app.get('/api/health', (req, res) => res.json({ ok: true }));
