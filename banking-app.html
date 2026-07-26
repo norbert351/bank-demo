@@ -239,6 +239,11 @@
     border-radius:0 0 22px 22px;
   }
   .dash-top-row{display:flex;justify-content:flex-start;align-items:center;gap:12px;}
+  .dash-brand{
+    font-family:'Fraunces',serif;font-weight:600;font-size:17px;
+    color:var(--paper);white-space:nowrap;letter-spacing:-0.01em;
+  }
+  .dash-brand span{color:var(--brass-soft);}
 
   /* Hamburger menu button */
   .menu-toggle{
@@ -758,6 +763,7 @@
       border-radius:0 0 24px 24px;
     }
     .dash-top-row{gap:16px;justify-content:space-between;}
+    .dash-brand{font-size:19px;}
     .balance-amt{font-size:42px;}
     .acct-meta{gap:24px;margin-top:16px;}
     .quick-row{ padding:24px 32px 8px 32px; max-width:600px; }
@@ -989,6 +995,7 @@
         <button class="menu-toggle" id="menu-toggle" onclick="toggleMenu()" aria-label="Menu">
           <span></span><span></span><span></span>
         </button>
+        <div class="dash-brand">Bank of<span> America</span></div>
         <div class="greet">
           <div class="eyebrow" id="greet-time">Good afternoon</div>
           <h2 id="greet-name">Jordan Whitfield</h2>
