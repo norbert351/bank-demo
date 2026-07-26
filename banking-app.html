@@ -398,25 +398,6 @@
   .profile-row span:first-child{color:var(--slate);}
   .profile-row span:last-child{font-family:'IBM Plex Mono',monospace;color:var(--ink);}
 
-  .bottom-nav{
-    position:absolute;bottom:0;left:0;right:0;
-    background:var(--paper);border-top:1px solid var(--line);
-    display:flex;padding:10px 10px 16px 10px;
-    z-index:10;
-  }
-  .nav-btn{
-    flex:1;background:none;border:none;text-align:center;font-size:9.5px;
-    color:var(--slate);font-weight:500;padding:2px 0;
-  }
-  .nav-btn.active{color:var(--ink);}
-  .nav-btn .ni{display:block;font-size:15px;margin-bottom:2px;}
-  .watermark-fab{
-    position:absolute;top:14px;right:14px;
-    background:rgba(16,35,63,0.55);color:var(--paper);
-    font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.06em;
-    padding:4px 8px;border-radius:6px;z-index:5;
-  }
-
   /* ---------- Toast ---------- */
   .toast{
     position:absolute;top:26px;left:50%;
@@ -840,7 +821,6 @@
   @media(max-width:768px){
     .desktop-sidebar{width:240px;}
     .dsb-btn{padding:10px 14px;font-size:12.5px;}
-    .bottom-nav{padding:6px 6px 12px 6px;}
   }
 </style>
 </head>
@@ -1025,14 +1005,6 @@
 
     <div style="height:70px;"></div>
 
-    <div class="bottom-nav">
-      <button class="nav-btn" id="nav-home" onclick="goScreen('dash')"><span class="ni">⌂</span>Home</button>
-      <button class="nav-btn" id="nav-transfer" onclick="routeSend()"><span class="ni">↔</span>Transfer</button>
-      <button class="nav-btn" id="nav-statements" onclick="goScreen('statement')"><span class="ni">≡</span>Statements</button>
-      <button class="nav-btn" id="nav-support" onclick="openSupport()"><span class="ni">🎧</span>Support</button>
-      <button class="nav-btn" id="nav-profile" onclick="goScreen('profile-edit')"><span class="ni">👤</span>Profile</button>
-      <button class="nav-btn" id="nav-logout" onclick="handleLogout()"><span class="ni">⎋</span>Log Out</button>
-    </div>
   </div>
 
   <!-- ============ SEND ============ -->
@@ -1502,12 +1474,7 @@
   }
 
   function updateNav(id){
-    var map = {dash:'nav-home', send:'nav-transfer', restricted:'nav-transfer', statement:'nav-statements', support:'nav-support', chat:'nav-support', 'profile-edit':'nav-profile'};
-    ['nav-home','nav-transfer','nav-statements','nav-support','nav-profile','nav-logout'].forEach(function(navId){
-      var el = document.getElementById(navId);
-      if(el) el.classList.remove('active');
-    });
-    if(map[id]) document.getElementById(map[id]).classList.add('active');
+    // Navigation is handled exclusively by the sidebar.
 
     // Desktop sidebar
     var dsbMap = {dash:'dsb-home', send:'dsb-transfer', restricted:'dsb-transfer', statement:'dsb-statements', request:'dsb-transfer', deposit:'dsb-transfer', 'profile-edit':'dsb-profile', support:'dsb-support', chat:'dsb-support', auth:'dsb-home', forgot:'dsb-home', landing:'dsb-home'};
