@@ -1,0 +1,11 @@
+{
+  "name": "bank-demo-api",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node api.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0"
+  }
+}
